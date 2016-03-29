@@ -11,9 +11,12 @@
     "typings/main.d.ts",
     "src/my-typings/webmidi.d.ts",
     "src/app.ts",
+    "src/controller.ts",
+    "src/patches.ts",
     "src/effect.ts",
     "src/effects/sweep-down.ts",
     "src/effects/note-sequencer.ts",
-    "src/effects/control-sequencer.ts"
+    "src/effects/control-sequencer.ts",
+    "src/components/app-view.ts"
   ]
 }
