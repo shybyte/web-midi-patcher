@@ -8,6 +8,8 @@ Just playing around...
     npm install
     npm run serve
 
+Open http://localhost:8080/ or http://localhost:8080/webpack-dev-server/ (live reload) in chrome.
+
 ##License
 
 GNU Affero General Public License v3.0
