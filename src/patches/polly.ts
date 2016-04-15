@@ -1,4 +1,4 @@
-import {CUTOFF, OSC2_SEMITONE} from '../instruments/microkorg';
+import {CUTOFF, MOD, OSC2_SEMITONE,CONTROL1, CONTROL2, NOISE_LEVEL} from '../instruments/microkorg';
 import {SweepDown} from '../effects/sweep-down';
 import {ControlSequencer} from '../effects/control-sequencer';
 import {Patch} from '../patch';

@@ -2,12 +2,11 @@ import {Effect} from '../effect'
 
 export class SweepDown implements Effect {
   monoGroups = ['74'];
-  startValue = 127;
   value = 127;
   startTime: number;
   speed = 0.1;
 
-  constructor(public controlIndex: number, public minValue: number) {
+  constructor(public controlIndex: number, public minValue: number, public startValue: number = 127) {
     this.monoGroups = [controlIndex.toString()];
   }
 
