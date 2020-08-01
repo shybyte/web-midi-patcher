@@ -6,14 +6,14 @@ Just playing around...
 ## How to run
 
     npm install
-    npm run serve
+    npm start
 
-Open [http://localhost:8080/](http://localhost:8080/) or [http://localhost:8080/webpack-dev-server/](http://localhost:8080/webpack-dev-server/) (live reload) in chrome.
+Open [http://localhost:1234/](http://localhost:1234/) for live reload.
 
-##License
+## License
 
 GNU Affero General Public License v3.0
 
-##Copyright
+## Copyright
 
-Copyright 2016 Marco Stahl
+Copyright 2020 Marco Stahl
