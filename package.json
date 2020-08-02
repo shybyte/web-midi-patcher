@@ -18,7 +18,9 @@
     }
   ],
   "license": "GNU Affero General Public License v3.0",
-  "dependencies": {},
+  "dependencies": {
+    "@types/webmidi": "^2.0.4"
+  },
   "devDependencies": {
     "parcel": "^2.0.0-beta.1",
     "typescript": "^3.9.7"

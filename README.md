@@ -8,7 +8,7 @@ Just playing around...
     npm install
     npm start
 
-Open [http://localhost:1234/](http://localhost:1234/) for live reload.
+Open [http://localhost:1234/](http://localhost:1234/) in a chrome based browser for live reload.
 
 ## License
 
