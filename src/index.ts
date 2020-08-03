@@ -16,7 +16,6 @@ async function start() {
 
   for (const input of midiAccess.inputs.values()) {
     input.addEventListener('midimessage', (messageEvent: MIDIMessageEvent) => {
-      console.log('time', messageEvent.receivedTime, messageEvent.timeStamp);
       const midiMessage = MidiMessage.from(messageEvent);
       currentPatch.onMidiEvent(new MidiEvent(midiMessage, messageEvent.timeStamp, input.name || ''),
         [...midiAccess.outputs.values()])
