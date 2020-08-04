@@ -1,5 +1,6 @@
 import {MidiEvent} from './midi-event';
 import {MidiMessage} from './midi-message';
+import {MidiOut} from './midi-out';
 import {young} from './songs/young';
 
 type MIDIMessageEvent = WebMidi.MIDIMessageEvent;
@@ -17,8 +18,10 @@ async function start() {
   for (const input of midiAccess.inputs.values()) {
     input.addEventListener('midimessage', (messageEvent: MIDIMessageEvent) => {
       const midiMessage = MidiMessage.from(messageEvent);
-      currentPatch.onMidiEvent(new MidiEvent(midiMessage, messageEvent.timeStamp, input.name || ''),
-        [...midiAccess.outputs.values()])
+      currentPatch.onMidiEvent(
+        new MidiEvent(midiMessage, messageEvent.timeStamp, input.name || ''),
+        new MidiOut(midiAccess.outputs)
+      )
     })
   }
 }

@@ -40,10 +40,10 @@ export type Unknown = {
   data: Uint8Array;
 }
 
-type RawMidiMessage = { data: Uint8Array };
+type RawMidiMessageEvent = { data: Uint8Array };
 
 export const MidiMessage = {
-  from(rawMidiMessage: RawMidiMessage): MidiMessage {
+  from(rawMidiMessage: RawMidiMessageEvent): MidiMessage {
     const statusByte = rawMidiMessage.data[0];
     const status = statusByte >> 4;
     const channel = statusByte & 0b1111;
@@ -80,7 +80,7 @@ export const MidiMessage = {
     }
   },
 
-  toRaw(midiMessage: MidiMessage): [number, number] | [number, number, number] | Uint8Array {
+  toRaw(midiMessage: MidiMessage): RawMidiMessage {
     switch (midiMessage.type) {
       case 'NoteOn':
         return [9 << 4 + midiMessage.channel, midiMessage.note, midiMessage.velocity];
@@ -96,6 +96,8 @@ export const MidiMessage = {
   }
 }
 
+export type RawMidiMessage = [number, number] | [number, number, number] | Uint8Array;
+
 export const MidiMessageRaw = {
   noteOn: (note: U7, velocity = 127, channel = 0) => MidiMessage.toRaw({
     type: 'NoteOn',
@@ -106,4 +108,11 @@ export const MidiMessageRaw = {
     type: 'NoteOff',
     note, velocity, channel
   }),
+
+  controlChange: (control : U7, value: U7, channel = 0) => MidiMessage.toRaw({
+    type: 'ControlChange',
+    control, value, channel
+  }),
+
+  pitchBendChange: (value: U7, channel = 0): RawMidiMessage => [0xC << 4 + channel, value >> 8, value & 0xff],
 }

@@ -1,7 +1,11 @@
 import {MidiEvent} from './midi-event';
-import MIDIOutput = WebMidi.MIDIOutput;
+import {MidiOut} from './midi-out';
 
-export interface Patch {
-  onMidiEvent(midiMessage: MidiEvent, midiOutputs: MIDIOutput[]): void;
+export interface Effect {
+  onMidiEvent(midiMessage: MidiEvent, midiOut: MidiOut): void;
+}
+
+export interface Patch extends Effect {
+  name: string;
 }
 

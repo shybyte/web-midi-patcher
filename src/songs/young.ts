@@ -1,30 +1,48 @@
+import {HarmonyDrum} from '../effects/harmony-drum';
+import {CUTOFF} from '../microkorg';
 import {MidiEvent} from '../midi-event';
+import {filterBy, filterByPort} from '../midi-filter';
 import {MidiMessageRaw} from '../midi-message';
+import {MidiOut} from '../midi-out';
 import {Patch} from '../patch';
+import {mapRange} from '../utils';
 import {MidiThroughPort, VirtualKeyboard, VMPK} from './midi-ports';
 
 function createYoung(): Patch {
-  let currentNote = 54;
+  const commonHarmonyDrum = {
+    baseNoteInputFilter: filterByPort(VMPK),
+    resetDuration: 10_0000,
+    outputPortName: MidiThroughPort,
+  };
+
+  const effects = [
+    new HarmonyDrum({
+      ...commonHarmonyDrum,
+      trigger: filterBy(VirtualKeyboard, 71),
+      noteOffsets: [0]
+    }),
+    new HarmonyDrum({
+      ...commonHarmonyDrum,
+      trigger: filterBy(VirtualKeyboard, 72),
+      noteOffsets: [7, 12, 19]
+    })
+  ];
 
   return {
-    async onMidiEvent(midiMessage: MidiEvent, midiOutputs: WebMidi.MIDIOutput[]) {
-      // console.log('onMidiEvent', midiMessage);
-      if (midiMessage.portName === VMPK && midiMessage.message.type === 'NoteOn') {
-        currentNote = midiMessage.message.note
-      } else if (midiMessage.portName === VirtualKeyboard && midiMessage.message.type === 'NoteOn') {
-        const output = [...midiOutputs.values()].find(it => it.name === MidiThroughPort)!;
-        output.send(MidiMessageRaw.noteOn(currentNote));
-        await waitMs(100)
-        output.send(MidiMessageRaw.noteOff(currentNote));
+    name: 'Young',
+    async onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
+      // console.log('onMidiEvent', midiEvent, midiEvent.message);
+      for (const effect of effects) {
+        effect.onMidiEvent(midiEvent, midiOut).then(r => {/*Ignore*/
+        });
+      }
+      if (midiEvent.portName === VMPK && midiEvent.message.type === 'ControlChange') {
+        midiOut.send(MidiThroughPort, MidiMessageRaw.pitchBendChange(midiEvent.message.value))
+        const cutoffValue = mapRange([0, 127], [10, 127], midiEvent.message.value);
+        midiOut.send(MidiThroughPort, MidiMessageRaw.controlChange(CUTOFF, cutoffValue))
       }
     }
   }
 }
 
 export const young = createYoung();
-
-function waitMs(duration: number) {
-  return new Promise(resolve => {
-    setTimeout(resolve, duration);
-  });
-}
