@@ -109,7 +109,7 @@ export const MidiMessageRaw = {
     note, velocity, channel
   }),
 
-  controlChange: (control : U7, value: U7, channel = 0) => MidiMessage.toRaw({
+  controlChange: (control: U7, value: U7, channel = 0) => MidiMessage.toRaw({
     type: 'ControlChange',
     control, value, channel
   }),

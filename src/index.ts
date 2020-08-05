@@ -18,7 +18,8 @@ async function start() {
 
   const patches = [young, wahrheit];
   const findPatch = (name: string) => patches.find(it => it.name === name);
-  const findPatchByHash = () => findPatch(location.hash.slice(1));;
+  const findPatchByHash = () => findPatch(location.hash.slice(1));
+  ;
   let currentPatch = findPatchByHash() || patches[0];
 
   for (const input of midiAccess.inputs.values()) {

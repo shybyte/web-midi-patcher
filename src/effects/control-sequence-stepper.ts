@@ -1,4 +1,3 @@
-import {OSC2_SEMITONE} from '../microkorg';
 import {MidiEvent} from '../midi-event';
 import {MidiFilter} from '../midi-filter';
 import {MidiMessageRaw} from '../midi-message';

@@ -25,7 +25,7 @@ export class HarmonyDrum implements Effect {
     if (this.props.baseNoteInputFilter(midiEvent) && midiEvent.message.type === 'NoteOn') {
       this.baseNote = midiEvent.message.note;
     } else if (this.props.trigger(midiEvent) && midiEvent.message.type === 'NoteOn') {
-      if (this.props.resetDuration && midiEvent.receivedTime - this.lastTimestamp  > this.props.resetDuration) {
+      if (this.props.resetDuration && midiEvent.receivedTime - this.lastTimestamp > this.props.resetDuration) {
         this.noteOffsetIndex = 0;
         console.log('Resetxcxx', midiEvent.receivedTime - this.lastTimestamp, this.props.resetDuration);
       }

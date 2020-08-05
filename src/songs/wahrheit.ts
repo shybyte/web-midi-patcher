@@ -19,7 +19,7 @@ function createWahrheit(): Patch {
     }),
     new ControlSequenceStepper({
       trigger: filterBy(HAND_SONIC, 74),
-      outputPortName:USB_MIDI_ADAPTER,
+      outputPortName: USB_MIDI_ADAPTER,
       control: OSC2_SEMITONE,
       values: [64, 95],
       resetFilter: filterBy(HAND_SONIC, 70)
