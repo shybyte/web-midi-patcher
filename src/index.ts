@@ -1,7 +1,10 @@
 import {MidiEvent} from './midi-event';
 import {MidiMessage} from './midi-message';
 import {MidiOut} from './midi-out';
+import {Patch} from './patch';
+import {wahrheit} from './songs/wahrheit';
 import {young} from './songs/young';
+import {renderPatchSelection, renderView} from './view';
 
 type MIDIMessageEvent = WebMidi.MIDIMessageEvent;
 
@@ -13,7 +16,10 @@ async function start() {
   console.log('Inputs:', [...midiAccess.inputs.values()]);
   console.log('Outputs:', [...midiAccess.outputs.values()]);
 
-  const currentPatch = young;
+  const patches = [young, wahrheit];
+  const findPatch = (name: string) => patches.find(it => it.name === name);
+  const findPatchByHash = () => findPatch(location.hash.slice(1));;
+  let currentPatch = findPatchByHash() || patches[0];
 
   for (const input of midiAccess.inputs.values()) {
     input.addEventListener('midimessage', (messageEvent: MIDIMessageEvent) => {
@@ -24,6 +30,16 @@ async function start() {
       )
     })
   }
+
+  window.addEventListener('hashchange', () => selectPatch((findPatchByHash())!))
+
+  function selectPatch(selectedPatch: Patch) {
+    currentPatch = selectedPatch;
+    renderPatchSelection(currentPatch);
+  }
+
+  renderView(patches);
+  renderPatchSelection(currentPatch);
 }
 
 start();

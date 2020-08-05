@@ -1,0 +1,40 @@
+html {
+  font-family: sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+
+h1 {
+  text-align: center;
+}
+
+/* List reset */
+ul, ul li {
+  margin:0;
+  padding: 0;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+
+ul {
+  text-align: center;
+}
+
+.patch {
+  transition: font-size 1s;
+}
+
+.patch[aria-selected="true"] {
+  font-size: 2em;
+  color: #000;
+}
+
+.patch[aria-selected="false"] {
+  font-size: 1em;
+  color: #888;
+}
