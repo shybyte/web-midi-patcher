@@ -7,5 +7,6 @@ export interface Effect {
 
 export interface Patch extends Effect {
   name: string;
+  midi_program: number;
 }
 

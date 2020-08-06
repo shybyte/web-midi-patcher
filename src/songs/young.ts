@@ -30,6 +30,7 @@ function createYoung(): Patch {
 
   return {
     name: 'Young',
+    midi_program: 28, // A45
     async onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       // console.log('onMidiEvent', midiEvent, midiEvent.message);
       for (const effect of effects) {

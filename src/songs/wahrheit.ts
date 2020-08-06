@@ -28,6 +28,7 @@ function createWahrheit(): Patch {
 
   return {
     name: 'Wahrheit',
+    midi_program: 48, // A71
     async onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       // console.log('onMidiEvent', midiEvent, midiEvent.message);
       for (const effect of effects) {

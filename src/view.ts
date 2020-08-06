@@ -2,7 +2,7 @@ import {Patch} from './patch';
 
 type PatchSelectionHandler = (selectedPatch: Patch) => void;
 
-export function renderView(patches: Patch[]) {
+export function renderInitialView(patches: Patch[]) {
   // Render initial view
   const appHtml =
     '<ul>' + (patches.map((patch, i) => (
@@ -16,11 +16,15 @@ export function renderView(patches: Patch[]) {
     const patchEl = document.querySelector('.patch[aria-selected="true"]');
     const selectedPatchIndex = parseInt(patchEl!.getAttribute('data-index')!);
     if (keyEvent.key === 'ArrowUp') {
-      location.hash = patches[(selectedPatchIndex + patches.length - 1) % patches.length].name;
+      switchPatch(patches[(selectedPatchIndex + patches.length - 1) % patches.length]);
     } else if (keyEvent.key === 'ArrowDown') {
-      location.hash = patches[(selectedPatchIndex + 1) % patches.length].name;
+      switchPatch(patches[(selectedPatchIndex + 1) % patches.length]);
     }
   });
+}
+
+export function switchPatch(patch: Patch) {
+  location.hash = patch.name;
 }
 
 export function renderPatchSelection(selectedPatch: Patch) {
