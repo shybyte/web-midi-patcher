@@ -4,26 +4,27 @@ import {MidiEvent} from '../midi-event';
 import {filterBy, filterByPort} from '../midi-filter';
 import {MidiMessageRaw} from '../midi-message';
 import {MidiOut} from '../midi-out';
-import {Patch} from '../patch';
+import {applyEffects, Patch} from '../patch';
 import {mapRange} from '../utils';
-import {MidiThroughPort, VirtualKeyboard, VMPK} from './midi-ports';
+import {THROUGH_PORT, VIRTUAL_KEYBOARD, VMPK} from './midi-ports';
 
 function createYoung(): Patch {
   const commonHarmonyDrum = {
     baseNoteInputFilter: filterByPort(VMPK),
     resetDuration: 10_0000,
-    outputPortName: MidiThroughPort,
+    noteDuration: 100,
+    outputPortName: THROUGH_PORT,
   };
 
   const effects = [
     new HarmonyDrum({
       ...commonHarmonyDrum,
-      trigger: filterBy(VirtualKeyboard, 71),
+      trigger: filterBy(VIRTUAL_KEYBOARD, 71),
       noteOffsets: [0]
     }),
     new HarmonyDrum({
       ...commonHarmonyDrum,
-      trigger: filterBy(VirtualKeyboard, 72),
+      trigger: filterBy(VIRTUAL_KEYBOARD, 72),
       noteOffsets: [7, 12, 19]
     })
   ];
@@ -31,16 +32,13 @@ function createYoung(): Patch {
   return {
     name: 'Young',
     midi_program: 28, // A45
-    async onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
-      // console.log('onMidiEvent', midiEvent, midiEvent.message);
-      for (const effect of effects) {
-        effect.onMidiEvent(midiEvent, midiOut).then(r => {/*Ignore*/
-        });
-      }
+    onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
+      applyEffects(midiEvent, midiOut, effects);
+
       if (midiEvent.portName === VMPK && midiEvent.message.type === 'ControlChange') {
-        midiOut.send(MidiThroughPort, MidiMessageRaw.pitchBendChange(midiEvent.message.value))
+        midiOut.send(THROUGH_PORT, MidiMessageRaw.pitchBendChange(midiEvent.message.value))
         const cutoffValue = mapRange([0, 127], [10, 127], midiEvent.message.value);
-        midiOut.send(MidiThroughPort, MidiMessageRaw.controlChange(CUTOFF, cutoffValue))
+        midiOut.send(THROUGH_PORT, MidiMessageRaw.controlChange(CUTOFF, cutoffValue))
       }
     }
   }

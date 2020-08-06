@@ -3,6 +3,7 @@ import {MidiEvent} from './midi-event';
 import {MidiMessage} from './midi-message';
 import {MidiOut} from './midi-out';
 import {Patch} from './patch';
+import {system} from './songs/system';
 import {wahrheit} from './songs/wahrheit';
 import {young} from './songs/young';
 import {renderPatchSelection, renderInitialView, switchPatch} from './view';
@@ -17,7 +18,7 @@ async function start() {
   console.log('Inputs:', [...midiAccess.inputs.values()]);
   console.log('Outputs:', [...midiAccess.outputs.values()]);
 
-  const patches = [young, wahrheit];
+  const patches = [young, wahrheit, system];
   const findPatch = (name: string) => patches.find(it => it.name === name);
   const findPatchByHash = () => findPatch(location.hash.slice(1));
   let currentPatch = findPatchByHash() || patches[0];
