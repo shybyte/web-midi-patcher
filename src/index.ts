@@ -3,10 +3,11 @@ import {MidiEvent} from './midi-event';
 import {MidiMessage} from './midi-message';
 import {MidiOut} from './midi-out';
 import {Patch} from './patch';
+import {HAND_SONIC} from './songs/midi-ports';
 import {system} from './songs/system';
 import {wahrheit} from './songs/wahrheit';
 import {young} from './songs/young';
-import {renderPatchSelection, renderInitialView, switchPatch} from './view';
+import {renderInitialView, renderPatchSelection, switchPatchPage} from './view';
 
 type MIDIMessageEvent = WebMidi.MIDIMessageEvent;
 
@@ -17,11 +18,22 @@ async function start() {
   const midiAccess = await navigator.requestMIDIAccess({sysex: true});
   console.log('Inputs:', [...midiAccess.inputs.values()]);
   console.log('Outputs:', [...midiAccess.outputs.values()]);
+  const midiOut = new MidiOut(midiAccess.outputs);
+
 
   const patches = [young, wahrheit, system];
   const findPatch = (name: string) => patches.find(it => it.name === name);
   const findPatchByHash = () => findPatch(location.hash.slice(1));
-  let currentPatch = findPatchByHash() || patches[0];
+
+  let currentPatch = patches[0];
+
+  function selectPatch(selectedPatch: Patch) {
+    currentPatch = selectedPatch;
+    if (selectedPatch.drumProgram != undefined) {
+      midiOut.programChange(HAND_SONIC, selectedPatch.drumProgram);
+    }
+    renderPatchSelection(currentPatch);
+  }
 
   for (const input of midiAccess.inputs.values()) {
     input.addEventListener('midimessage', (messageEvent: MIDIMessageEvent) => {
@@ -30,27 +42,24 @@ async function start() {
       // console.log(midiEvent, midiMessage);
 
       if (midiMessage.type === 'ProgramChange' && PROGRAMM_CHANGE_INPUT_PORTS.includes(midiEvent.portName)) {
-        const newSelectedPatch = patches.find(it => it.midi_program === midiMessage.number);
+        const newSelectedPatch = patches.find(it => it.midiProgram === midiMessage.number);
         if (newSelectedPatch) {
-          switchPatch(newSelectedPatch);
+          switchPatchPage(newSelectedPatch);
         } else {
           console.warn('No patch for programm ', midiMessage.number);
         }
       }
 
-      currentPatch.onMidiEvent(midiEvent, new MidiOut(midiAccess.outputs));
+      currentPatch.onMidiEvent(midiEvent, midiOut);
     })
   }
 
   window.addEventListener('hashchange', () => selectPatch((findPatchByHash())!))
 
-  function selectPatch(selectedPatch: Patch) {
-    currentPatch = selectedPatch;
-    renderPatchSelection(currentPatch);
-  }
-
   renderInitialView(patches);
   renderPatchSelection(currentPatch);
+
+  selectPatch(findPatchByHash() || currentPatch);
 }
 
 start();

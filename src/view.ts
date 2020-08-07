@@ -16,14 +16,14 @@ export function renderInitialView(patches: Patch[]) {
     const patchEl = document.querySelector('.patch[aria-selected="true"]');
     const selectedPatchIndex = parseInt(patchEl!.getAttribute('data-index')!);
     if (keyEvent.key === 'ArrowUp') {
-      switchPatch(patches[(selectedPatchIndex + patches.length - 1) % patches.length]);
+      switchPatchPage(patches[(selectedPatchIndex + patches.length - 1) % patches.length]);
     } else if (keyEvent.key === 'ArrowDown') {
-      switchPatch(patches[(selectedPatchIndex + 1) % patches.length]);
+      switchPatchPage(patches[(selectedPatchIndex + 1) % patches.length]);
     }
   });
 }
 
-export function switchPatch(patch: Patch) {
+export function switchPatchPage(patch: Patch) {
   location.hash = patch.name;
 }
 

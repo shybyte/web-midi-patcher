@@ -7,7 +7,8 @@ export interface Effect {
 
 export interface Patch extends Effect {
   name: string;
-  midi_program: number;
+  drumProgram?: number;
+  midiProgram: number;
 }
 
 export function applyEffects(midiEvent: MidiEvent, midiOut: MidiOut, effects: Effect[]) {

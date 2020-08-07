@@ -1,6 +1,5 @@
 import {MidiEvent} from '../midi-event';
 import {MidiFilter} from '../midi-filter';
-import {MidiMessageRaw} from '../midi-message';
 import {MidiOut} from '../midi-out';
 import {Effect} from '../patch';
 import {waitMs} from '../utils';
@@ -44,13 +43,13 @@ export class HarmonyDrum implements Effect {
       this.playingNote = this.baseNote + props.noteOffsets[this.noteOffsetIndex];
       console.log('Play Note!', this.playingNote);
       this.noteOffsetIndex = (this.noteOffsetIndex + 1) % props.noteOffsets.length;
-      midiOut.send(props.outputPortName, MidiMessageRaw.noteOn(this.playingNote));
+      midiOut.noteOn(props.outputPortName, this.playingNote);
       if (props.noteDuration) {
         await waitMs(props.noteDuration);
-        midiOut.send(props.outputPortName, MidiMessageRaw.noteOff(this.playingNote));
+        midiOut.noteOff(props.outputPortName, this.playingNote);
       }
     } else if (props.trigger(midiEvent) && !props.noteDuration && midiEvent.message.type === 'NoteOff') {
-      midiOut.send(props.outputPortName, MidiMessageRaw.noteOff(this.playingNote));
+      midiOut.noteOff(props.outputPortName, this.playingNote);
     }
   }
 }

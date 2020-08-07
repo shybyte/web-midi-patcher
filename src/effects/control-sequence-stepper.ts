@@ -1,6 +1,5 @@
 import {MidiEvent} from '../midi-event';
 import {MidiFilter} from '../midi-filter';
-import {MidiMessageRaw} from '../midi-message';
 import {MidiOut} from '../midi-out';
 import {Effect} from '../patch';
 
@@ -32,6 +31,6 @@ export class ControlSequenceStepper implements Effect {
     const value = props.values[this.valueIndex];
     console.log('Send Value!', value);
     this.valueIndex = (this.valueIndex + 1) % props.values.length;
-    midiOut.send(props.outputPortName, MidiMessageRaw.controlChange(props.control, value));
+    midiOut.controlChange(props.outputPortName, props.control, value);
   }
 }

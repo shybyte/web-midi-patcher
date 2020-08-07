@@ -1,14 +1,15 @@
 import {HarmonyDrum} from '../effects/harmony-drum';
 import {MidiEvent} from '../midi-event';
-import {filterBy, filterByNoteOnRange} from '../midi-filter';
+import {filterBy, filterByNoteInRange, filterByNoteOnInRange} from '../midi-filter';
+import {MidiMessage} from '../midi-message';
 import {MidiOut} from '../midi-out';
 import {A4} from '../midi_notes';
 import {applyEffects, Patch} from '../patch';
-import {HAND_SONIC, THROUGH_PORT, VIRTUAL_KEYBOARD} from './midi-ports';
+import {HAND_SONIC, THROUGH_PORT} from './midi-ports';
 
 function createSystem(): Patch {
   const commonHarmonyDrum = {
-    baseNoteInputFilter: filterByNoteOnRange(HAND_SONIC, [10, 127]),
+    baseNoteInputFilter: filterByNoteOnInRange(HAND_SONIC, [10, 127]),
     resetDuration: 2_000,
     outputPortName: THROUGH_PORT,
   };
@@ -27,11 +28,16 @@ function createSystem(): Patch {
     })
   ];
 
+  const forwardToSynth = filterByNoteInRange(HAND_SONIC, [10, 127]);
+
   return {
     name: 'System',
-    midi_program: 51, // A74
+    midiProgram: 51, // A74
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       applyEffects(midiEvent, midiOut, effects);
+      if (forwardToSynth(midiEvent)) {
+        midiOut.send(THROUGH_PORT, midiEvent.message);
+      }
     }
   }
 }

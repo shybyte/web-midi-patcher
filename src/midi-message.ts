@@ -1,5 +1,6 @@
 type Channel = number;
-type U7 = number;
+export type U7 = number;
+export type U4 = number;
 
 export type MidiMessage =
   | NoteOff
@@ -97,22 +98,3 @@ export const MidiMessage = {
 }
 
 export type RawMidiMessage = [number, number] | [number, number, number] | Uint8Array;
-
-export const MidiMessageRaw = {
-  noteOn: (note: U7, velocity = 127, channel = 0) => MidiMessage.toRaw({
-    type: 'NoteOn',
-    note, velocity, channel
-  }),
-
-  noteOff: (note: U7, velocity = 127, channel = 0) => MidiMessage.toRaw({
-    type: 'NoteOff',
-    note, velocity, channel
-  }),
-
-  controlChange: (control: U7, value: U7, channel = 0) => MidiMessage.toRaw({
-    type: 'ControlChange',
-    control, value, channel
-  }),
-
-  pitchBendChange: (value: U7, channel = 0): RawMidiMessage => [0xC << 4 + channel, value >> 8, value & 0xff],
-}
