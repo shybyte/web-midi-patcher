@@ -31,6 +31,7 @@ function createYoung(): Patch {
   return {
     name: 'Young',
     midiProgram: 28, // A45
+    drumProgram: 106,
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       applyEffects(midiEvent, midiOut, effects);
 

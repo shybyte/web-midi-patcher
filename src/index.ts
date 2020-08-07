@@ -29,9 +29,7 @@ async function start() {
 
   function selectPatch(selectedPatch: Patch) {
     currentPatch = selectedPatch;
-    if (selectedPatch.drumProgram != undefined) {
-      midiOut.programChange(HAND_SONIC, selectedPatch.drumProgram);
-    }
+    midiOut.programChange(HAND_SONIC, selectedPatch.drumProgram ?? 107);
     renderPatchSelection(currentPatch);
   }
 

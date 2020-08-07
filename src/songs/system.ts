@@ -33,6 +33,7 @@ function createSystem(): Patch {
   return {
     name: 'System',
     midiProgram: 51, // A74
+    drumProgram: 106,
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       applyEffects(midiEvent, midiOut, effects);
       if (forwardToSynth(midiEvent)) {
