@@ -7,7 +7,7 @@ import {MidiOut} from '../midi-out';
 import {applyEffects, Patch} from '../patch';
 import {EXPRESS_PEDAL, HAND_SONIC, THROUGH_PORT, USB_MIDI_ADAPTER, VMPK} from './midi-ports';
 
-function createWahrheit(): Patch {
+export function wahrheit(): Patch {
   const effects = [
     new HarmonyDrum({
       baseNoteInputFilter: filterByPort(VMPK),
@@ -38,5 +38,3 @@ function createWahrheit(): Patch {
     }
   }
 }
-
-export const wahrheit = createWahrheit();

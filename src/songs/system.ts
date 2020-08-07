@@ -7,7 +7,7 @@ import {A4} from '../midi_notes';
 import {applyEffects, Patch} from '../patch';
 import {HAND_SONIC, THROUGH_PORT} from './midi-ports';
 
-function createSystem(): Patch {
+export function system(): Patch {
   const commonHarmonyDrum = {
     baseNoteInputFilter: filterByNoteOnInRange(HAND_SONIC, [10, 127]),
     resetDuration: 2_000,
@@ -42,5 +42,3 @@ function createSystem(): Patch {
     }
   }
 }
-
-export const system = createSystem();

@@ -2,6 +2,7 @@ import {PROGRAMM_CHANGE_INPUT_PORTS} from './config';
 import {MidiEvent} from './midi-event';
 import {MidiMessage} from './midi-message';
 import {MidiOut} from './midi-out';
+import {Patch} from './patch';
 import {diktator} from './songs/diktator';
 import {HAND_SONIC} from './songs/midi-ports';
 import {system} from './songs/system';
@@ -20,10 +21,12 @@ async function start() {
   console.log('Outputs:', [...midiAccess.outputs.values()]);
   const midiOut = new MidiOut(midiAccess.outputs);
 
-  const patches = [young, wahrheit, system, diktator];
-  let currentPatch = patches[0];
+  const patchFactories = [young, wahrheit, system, diktator];
+  let patches = patchFactories.map((it) => it());
+  let currentPatch: Patch;
 
   function selectPatchFromPageHash() {
+    patches = patchFactories.map((it) => it());
     const hash = location.hash.slice(1);
     currentPatch = patches.find(it => it.name === hash) || currentPatch;
     midiOut.programChange(HAND_SONIC, currentPatch.drumProgram ?? 107);

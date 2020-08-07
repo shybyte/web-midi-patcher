@@ -1,47 +1,35 @@
-import {HarmonyDrum} from '../effects/harmony-drum';
-import {CUTOFF} from '../microkorg';
+import {ControlSequencer} from '../effects/control-sequencer';
+import {CUTOFF, OSC2_SEMITONE} from '../microkorg';
 import {MidiEvent} from '../midi-event';
-import {filterBy, filterByPort} from '../midi-filter';
+import {filterBy} from '../midi-filter';
 import {MidiOut} from '../midi-out';
 import {applyEffects, Patch} from '../patch';
-import {mapRange} from '../utils';
-import {THROUGH_PORT, VIRTUAL_KEYBOARD, VMPK} from './midi-ports';
+import {USB_MIDI_ADAPTER, VIRTUAL_KEYBOARD, VMPK} from './midi-ports';
 
-function createDiktator(): Patch {
-  const commonHarmonyDrum = {
-    baseNoteInputFilter: filterByPort(VMPK),
-    resetDuration: 10_0000,
-    noteDuration: 100,
-    outputPortName: THROUGH_PORT,
+export function diktator(): Patch {
+  const commonControlSequencer = {
+    outputPortName: USB_MIDI_ADAPTER,
+    step_duration: 100,
   };
 
   const effects = [
-    new HarmonyDrum({
-      ...commonHarmonyDrum,
+    new ControlSequencer({
+      ...commonControlSequencer,
       trigger: filterBy(VIRTUAL_KEYBOARD, 71),
-      noteOffsets: [0]
+      control: OSC2_SEMITONE,
+      values: [126, 114, 96, 78, 126, 126, 114, 114, 64]
     }),
-    new HarmonyDrum({
-      ...commonHarmonyDrum,
-      trigger: filterBy(VIRTUAL_KEYBOARD, 72),
-      noteOffsets: [7, 12, 19]
-    })
   ];
 
   return {
     name: 'Diktator',
-    midiProgram: 28, // A45
-    drumProgram: 106,
+    midiProgram: 43, // A64
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       applyEffects(midiEvent, midiOut, effects);
 
       if (midiEvent.portName === VMPK && midiEvent.message.type === 'ControlChange') {
-        midiOut.pitchBendChange(THROUGH_PORT, midiEvent.message.value)
-        const cutoffValue = mapRange([0, 127], [10, 127], midiEvent.message.value);
-        midiOut.controlChange(THROUGH_PORT, CUTOFF, cutoffValue);
+        midiOut.controlChange(USB_MIDI_ADAPTER, CUTOFF, midiEvent.message.value);
       }
     }
   }
 }
-
-export const diktator = createDiktator();

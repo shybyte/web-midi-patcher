@@ -7,7 +7,7 @@ import {applyEffects, Patch} from '../patch';
 import {mapRange} from '../utils';
 import {THROUGH_PORT, VIRTUAL_KEYBOARD, VMPK} from './midi-ports';
 
-function createYoung(): Patch {
+export function young(): Patch {
   const commonHarmonyDrum = {
     baseNoteInputFilter: filterByPort(VMPK),
     resetDuration: 10_0000,
@@ -43,5 +43,3 @@ function createYoung(): Patch {
     }
   }
 }
-
-export const young = createYoung();
