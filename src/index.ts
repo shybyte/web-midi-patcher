@@ -2,7 +2,7 @@ import {PROGRAMM_CHANGE_INPUT_PORTS} from './config';
 import {MidiEvent} from './midi-event';
 import {MidiMessage} from './midi-message';
 import {MidiOut} from './midi-out';
-import {Patch} from './patch';
+import {diktator} from './songs/diktator';
 import {HAND_SONIC} from './songs/midi-ports';
 import {system} from './songs/system';
 import {wahrheit} from './songs/wahrheit';
@@ -20,16 +20,13 @@ async function start() {
   console.log('Outputs:', [...midiAccess.outputs.values()]);
   const midiOut = new MidiOut(midiAccess.outputs);
 
-
-  const patches = [young, wahrheit, system];
-  const findPatch = (name: string) => patches.find(it => it.name === name);
-  const findPatchByHash = () => findPatch(location.hash.slice(1));
-
+  const patches = [young, wahrheit, system, diktator];
   let currentPatch = patches[0];
 
-  function selectPatch(selectedPatch: Patch) {
-    currentPatch = selectedPatch;
-    midiOut.programChange(HAND_SONIC, selectedPatch.drumProgram ?? 107);
+  function selectPatchFromPageHash() {
+    const hash = location.hash.slice(1);
+    currentPatch = patches.find(it => it.name === hash) || currentPatch;
+    midiOut.programChange(HAND_SONIC, currentPatch.drumProgram ?? 107);
     renderPatchSelection(currentPatch);
   }
 
@@ -52,12 +49,10 @@ async function start() {
     })
   }
 
-  window.addEventListener('hashchange', () => selectPatch((findPatchByHash())!))
-
   renderInitialView(patches);
-  renderPatchSelection(currentPatch);
 
-  selectPatch(findPatchByHash() || currentPatch);
+  window.addEventListener('hashchange', selectPatchFromPageHash);
+  selectPatchFromPageHash();
 }
 
 start();
