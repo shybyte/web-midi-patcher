@@ -5,17 +5,21 @@ import {Effect} from '../patch';
 import {waitMs} from '../utils';
 
 export interface ControlSequencerProps {
-  trigger: MidiFilter;
-  outputPortName: string;
-  control: number,
-  values: number[];
-  step_duration: number;
+  readonly trigger: MidiFilter;
+  readonly outputPortName: string;
+  readonly control: number,
+  readonly values: number[];
+  readonly step_duration: number;
 }
 
 export class ControlSequencer implements Effect {
   player?: ControlSequencePlayer;
 
   constructor(private props: ControlSequencerProps) {
+  }
+
+  set stepDuration(valueMs: number) {
+    this.props = {...this.props, step_duration: valueMs}
   }
 
   onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {

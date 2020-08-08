@@ -2,7 +2,7 @@ import {ControlForwarder} from '../effects/control-forwarder';
 import {HarmonyDrum} from '../effects/harmony-drum';
 import {CUTOFF} from '../microkorg';
 import {MidiEvent} from '../midi-event';
-import {filterBy, filterByPort} from '../midi-filter';
+import {filterBy, filterNoteOnByPort} from '../midi-filter';
 import {MidiOut} from '../midi-out';
 import {EXPRESS_PEDAL, THROUGH_PORT, USB_MIDI_ADAPTER, VIRTUAL_KEYBOARD, VMPK} from '../midi-ports';
 import {applyEffects, Patch} from '../patch';
@@ -10,7 +10,7 @@ import {mapRange, rangeMapper} from '../utils';
 
 export function young(): Patch {
   const commonHarmonyDrum = {
-    baseNoteInputFilter: filterByPort(VMPK),
+    baseNoteInputFilter: filterNoteOnByPort(VMPK),
     resetDuration: 10_0000,
     noteDuration: 100,
     outputPortName: THROUGH_PORT,

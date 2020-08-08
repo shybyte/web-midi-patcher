@@ -2,7 +2,7 @@ import {MidiEvent} from './midi-event';
 
 export type MidiFilter = (midiEvent: MidiEvent) => boolean;
 
-export function filterByPort(portName: string): MidiFilter {
+export function filterNoteOnByPort(portName: string): MidiFilter {
   return (midiEvent) =>
     midiEvent.portName === portName &&
     midiEvent.message.type === 'NoteOn';
