@@ -23,7 +23,7 @@ export class HarmonyDrum implements Effect {
   private baseNote = 50;
   private noteOffsetIndex = 0;
   private lastTimestamp = 0;
-  private playingNote = 0;
+  private pressedNote = 0;
 
   constructor(private props: HarmonyDrumProps) {
   }
@@ -42,18 +42,20 @@ export class HarmonyDrum implements Effect {
       }
       this.lastTimestamp = midiEvent.receivedTime;
 
-      this.playingNote = this.baseNote + props.noteOffsets[this.noteOffsetIndex];
-      console.log('HarmonyDrum: Play Note!', this.playingNote);
+      const playingNote = this.baseNote + props.noteOffsets[this.noteOffsetIndex];
+      console.log('HarmonyDrum: Play Note!', playingNote);
       this.noteOffsetIndex = (this.noteOffsetIndex + 1) % props.noteOffsets.length;
-      midiOut.noteOn(props.outputPortName, this.playingNote);
+      midiOut.noteOn(props.outputPortName, playingNote);
       if (props.noteDuration) {
         await waitMs(props.noteDuration);
-        console.log('HarmonyDrum: Stop note ', this.playingNote);
-        midiOut.noteOff(props.outputPortName, this.playingNote);
+        console.log('HarmonyDrum: Stop note ', playingNote);
+        midiOut.noteOff(props.outputPortName, playingNote);
+      } else {
+        this.pressedNote = playingNote;
       }
     } else if (props.trigger(midiEvent) && !props.noteDuration && midiEvent.message.type === 'NoteOff') {
-      console.log('HarmonyDrum: Stop note ', this.playingNote);
-      midiOut.noteOff(props.outputPortName, this.playingNote);
+      console.log('HarmonyDrum: Stop note ', this.pressedNote);
+      midiOut.noteOff(props.outputPortName, this.pressedNote);
     }
   }
 }
