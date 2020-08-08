@@ -31,13 +31,20 @@ export class MidiOut {
     this.send(portName, [0xC << 4 + channel, programNumber]);
   }
 
-
   public controlChange(portName: string, control: U7, value: U7, channel = 0) {
     this.send(portName, [0xB << 4 + channel, control, value]);
   }
 
   public pitchBendChange(portName: string, value: U7, channel = 0) {
     this.send(portName, [0xE << 4 + channel, value >> 8, value & 0xff]);
+  }
+
+  public allSoundsOff() {
+    for(const midiOutput of this.midiOutputs) {
+      this.controlChange(midiOutput.name!, 120, 0); // All Sounds off
+      this.controlChange(midiOutput.name!, 123, 0); // All Notes off
+      console.log('allSoundsOff', midiOutput.name);
+    }
   }
 }
 

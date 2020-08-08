@@ -1,4 +1,5 @@
 import {MidiEvent} from './midi-event';
+import {U7} from './midi-message';
 
 export type MidiFilter = (midiEvent: MidiEvent) => boolean;
 
@@ -8,7 +9,7 @@ export function filterNoteOnByPort(portName: string): MidiFilter {
     midiEvent.message.type === 'NoteOn';
 }
 
-export function filterBy(portName: string, note: number): MidiFilter {
+export function filterByNoteOn(portName: string, note: number): MidiFilter {
   return (midiEvent) =>
     midiEvent.comesFrom(portName) &&
     midiEvent.message.type === 'NoteOn' &&
@@ -29,3 +30,9 @@ export function filterByNoteInRange(portName: string, noteRange: [number, number
     noteRange[0] <= midiEvent.message.note && midiEvent.message.note <= noteRange[1];
 }
 
+export function filterByNote(portName: string, note: U7): MidiFilter {
+  return (midiEvent) =>
+    midiEvent.comesFrom(portName) &&
+    (midiEvent.message.type === 'NoteOn' || midiEvent.message.type === 'NoteOff') &&
+    midiEvent.message.note === note;
+}

@@ -4,7 +4,7 @@ import {MidiMessage} from './midi-message';
 import {MidiOut} from './midi-out';
 import {Patch} from './patch';
 import {diktator} from './songs/diktator';
-import {HAND_SONIC} from './midi-ports';
+import {HAND_SONIC, THROUGH_PORT} from './midi-ports';
 import {liebtUns} from './songs/liebt-uns';
 import {system} from './songs/system';
 import {wahrheit} from './songs/wahrheit';
@@ -39,7 +39,7 @@ async function start() {
       const midiMessage = MidiMessage.from(messageEvent);
       const midiEvent = new MidiEvent(midiMessage, messageEvent.timeStamp, input.name || '');
 
-      if (midiMessage.type === 'Unknown') {
+      if (midiMessage.type === 'Unknown' || midiEvent.comesFrom(THROUGH_PORT)) {
         return; // Ignore e.g. clock events
       }
 
@@ -58,7 +58,9 @@ async function start() {
     })
   }
 
-  renderInitialView(patches);
+  renderInitialView(patches, () => {
+    midiOut.allSoundsOff();
+  });
 
   window.addEventListener('hashchange', selectPatchFromPageHash);
   selectPatchFromPageHash();

@@ -43,14 +43,16 @@ export class HarmonyDrum implements Effect {
       this.lastTimestamp = midiEvent.receivedTime;
 
       this.playingNote = this.baseNote + props.noteOffsets[this.noteOffsetIndex];
-      console.log('Play Note!', this.playingNote);
+      console.log('HarmonyDrum: Play Note!', this.playingNote);
       this.noteOffsetIndex = (this.noteOffsetIndex + 1) % props.noteOffsets.length;
       midiOut.noteOn(props.outputPortName, this.playingNote);
       if (props.noteDuration) {
         await waitMs(props.noteDuration);
+        console.log('HarmonyDrum: Stop note ', this.playingNote);
         midiOut.noteOff(props.outputPortName, this.playingNote);
       }
     } else if (props.trigger(midiEvent) && !props.noteDuration && midiEvent.message.type === 'NoteOff') {
+      console.log('HarmonyDrum: Stop note ', this.playingNote);
       midiOut.noteOff(props.outputPortName, this.playingNote);
     }
   }

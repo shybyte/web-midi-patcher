@@ -1,6 +1,6 @@
 import {HarmonyDrum} from '../effects/harmony-drum';
 import {MidiEvent} from '../midi-event';
-import {filterBy, filterByNoteInRange, filterByNoteOnInRange} from '../midi-filter';
+import {filterByNoteOn, filterByNote, filterByNoteInRange, filterByNoteOnInRange} from '../midi-filter';
 import {MidiOut} from '../midi-out';
 import {HAND_SONIC, THROUGH_PORT} from '../midi-ports';
 import {A4} from '../midi_notes';
@@ -16,13 +16,13 @@ export function system(): Patch {
   const effects = [
     new HarmonyDrum({
       ...commonHarmonyDrum,
-      trigger: filterBy(HAND_SONIC, 1),
+      trigger: filterByNote(HAND_SONIC, 1),
       noteOffsets: [12, 19],
-      resetFilter: filterBy(HAND_SONIC, A4)
+      resetFilter: filterByNoteOn(HAND_SONIC, A4)
     }),
     new HarmonyDrum({
       ...commonHarmonyDrum,
-      trigger: filterBy(HAND_SONIC, 5),
+      trigger: filterByNote(HAND_SONIC, 5),
       noteOffsets: [19]
     })
   ];

@@ -2,15 +2,14 @@ import {Patch} from './patch';
 
 type PatchSelectionHandler = (selectedPatch: Patch) => void;
 
-export function renderInitialView(patches: Patch[]) {
+function renderPatches(patches: Patch[]) {
   // Render initial view
-  const appHtml =
-    '<ul>' + (patches.map((patch, i) => (
-        `<li class="patch" data-index="${i}"><a href="#${patch.name}">${patch.name}</a></li>`
-      )).join('')
-    ) + '</ul>'
-  const appElement = document.getElementById('app')!;
-  appElement.innerHTML = appHtml;
+  const patchesListHtml = (patches.map((patch, i) => (
+      `<li class="patch" data-index="${i}"><a href="#${patch.name}">${patch.name}</a></li>`
+    )).join('')
+  );
+  const patchesListElement = document.getElementById('patches')!;
+  patchesListElement.innerHTML = patchesListHtml;
 
   document.addEventListener('keydown', (keyEvent) => {
     const patchEl = document.querySelector('.patch[aria-selected="true"]');
@@ -21,6 +20,13 @@ export function renderInitialView(patches: Patch[]) {
       switchPatchPage(patches[(selectedPatchIndex + 1) % patches.length]);
     }
   });
+}
+
+export function renderInitialView(patches: Patch[], handlePanicButton: () => void) {
+  const panicButton = document.getElementById('panicButton')!;
+  panicButton.addEventListener('click', handlePanicButton);
+
+  renderPatches(patches);
 }
 
 export function switchPatchPage(patch: Patch) {

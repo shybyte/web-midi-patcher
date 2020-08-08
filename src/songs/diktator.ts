@@ -4,7 +4,7 @@ import {ControlSequencer} from '../effects/control-sequencer';
 
 import {CUTOFF, MOD, OSC2_SEMITONE} from '../microkorg';
 import {MidiEvent} from '../midi-event';
-import {filterBy, filterNoteOnByPort} from '../midi-filter';
+import {filterByNoteOn, filterNoteOnByPort} from '../midi-filter';
 import {MidiOut} from '../midi-out';
 import {EXPRESS_PEDAL, HAND_SONIC, THROUGH_PORT, MICRO_KORG} from '../midi-ports';
 import {applyEffects, Patch} from '../patch';
@@ -22,7 +22,7 @@ export function diktator(): Patch {
     defaultBeatDuration: defaultBeatDuration
   });
 
-  const handSonicBaseDrum = filterBy(HAND_SONIC, 71);
+  const handSonicBaseDrum = filterByNoteOn(HAND_SONIC, 71);
 
   const controlSequencerKorg = new ControlSequencer({
     ...commonControlSequencer,

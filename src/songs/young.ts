@@ -2,7 +2,7 @@ import {ControlForwarder} from '../effects/control-forwarder';
 import {HarmonyDrum} from '../effects/harmony-drum';
 import {CUTOFF} from '../microkorg';
 import {MidiEvent} from '../midi-event';
-import {filterBy, filterNoteOnByPort} from '../midi-filter';
+import {filterByNoteOn, filterByNote, filterNoteOnByPort} from '../midi-filter';
 import {MidiOut} from '../midi-out';
 import {EXPRESS_PEDAL, HAND_SONIC, MICRO_KORG, THROUGH_PORT,} from '../midi-ports';
 import {applyEffects, Patch} from '../patch';
@@ -19,15 +19,15 @@ export function young(): Patch {
   const effects = [
     new HarmonyDrum({
       ...commonHarmonyDrum,
-      trigger: filterBy(HAND_SONIC, 61),
+      trigger: filterByNote(HAND_SONIC, 61),
       noteOffsets: [0]
     }),
     new HarmonyDrum({
       ...commonHarmonyDrum,
-      trigger: filterBy(HAND_SONIC, 62),
+      trigger: filterByNote(HAND_SONIC, 62),
       noteOffsets: [7, 12, 19]
     }),
-    new ControlForwarder(EXPRESS_PEDAL, MICRO_KORG, CUTOFF, rangeMapper([0, 127], [10, 127])),
+    new ControlForwarder(EXPRESS_PEDAL, MICRO_KORG, CUTOFF, rangeMapper([0, 127], [0, 127])),
   ];
 
   return {

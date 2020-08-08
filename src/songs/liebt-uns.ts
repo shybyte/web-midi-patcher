@@ -2,7 +2,7 @@ import {ControlForwarder} from '../effects/control-forwarder';
 import {HarmonyDrum} from '../effects/harmony-drum';
 import {CUTOFF, MOD} from '../microkorg';
 import {MidiEvent} from '../midi-event';
-import {filterBy, filterByNoteInRange, filterByNoteOnInRange, filterNoteOnByPort} from '../midi-filter';
+import {filterByNoteOn, filterByNote, filterByNoteInRange, filterByNoteOnInRange, filterNoteOnByPort} from '../midi-filter';
 import {MidiOut} from '../midi-out';
 import {EXPRESS_PEDAL, HAND_SONIC, THROUGH_PORT, MICRO_KORG} from '../midi-ports';
 import {A4} from '../midi_notes';
@@ -18,7 +18,7 @@ export function liebtUns(): Patch {
   function mapHandSonicToNoteOffset(triggerNote: number, noteOffset: number) {
     return new HarmonyDrum({
       ...commonHarmonyDrum,
-      trigger: filterBy(HAND_SONIC, triggerNote),
+      trigger: filterByNote(HAND_SONIC, triggerNote),
       noteOffsets: [noteOffset],
     });
   }
