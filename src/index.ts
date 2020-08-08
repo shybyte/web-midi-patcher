@@ -4,7 +4,7 @@ import {MidiMessage} from './midi-message';
 import {MidiOut} from './midi-out';
 import {Patch} from './patch';
 import {diktator} from './songs/diktator';
-import {HAND_SONIC} from './songs/midi-ports';
+import {HAND_SONIC} from './midi-ports';
 import {system} from './songs/system';
 import {wahrheit} from './songs/wahrheit';
 import {young} from './songs/young';

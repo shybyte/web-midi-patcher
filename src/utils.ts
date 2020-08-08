@@ -14,3 +14,7 @@ export function mapRange(sourceRange: Range, targetRange: Range, value: number):
   }
   return targetRange[0] + (value - sourceRange[0]) * (targetRange[1] - targetRange[0]) / (sourceRange[1] - sourceRange[0]);
 }
+
+export function rangeMapper(sourceRange: Range, targetRange: Range) {
+  return mapRange.bind(null, sourceRange, targetRange);
+}

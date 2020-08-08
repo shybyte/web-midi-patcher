@@ -1,11 +1,13 @@
+import {ControlForwarder} from '../effects/control-forwarder';
 import {ControlSequenceStepper} from '../effects/control-sequence-stepper';
 import {HarmonyDrum} from '../effects/harmony-drum';
-import {MOD, OSC2_SEMITONE} from '../microkorg';
+import {CUTOFF, MOD, OSC2_SEMITONE} from '../microkorg';
 import {MidiEvent} from '../midi-event';
 import {filterBy, filterByPort} from '../midi-filter';
 import {MidiOut} from '../midi-out';
 import {applyEffects, Patch} from '../patch';
-import {EXPRESS_PEDAL, HAND_SONIC, THROUGH_PORT, USB_MIDI_ADAPTER, VMPK} from './midi-ports';
+import {EXPRESS_PEDAL, HAND_SONIC, THROUGH_PORT, USB_MIDI_ADAPTER, VMPK} from '../midi-ports';
+import {rangeMapper} from '../utils';
 
 export function wahrheit(): Patch {
   const effects = [
@@ -22,7 +24,9 @@ export function wahrheit(): Patch {
       control: OSC2_SEMITONE,
       values: [64, 95],
       resetFilter: filterBy(HAND_SONIC, 70)
-    })
+    }),
+    new ControlForwarder(EXPRESS_PEDAL, THROUGH_PORT, MOD),
+    new ControlForwarder(EXPRESS_PEDAL, USB_MIDI_ADAPTER, MOD),
   ];
 
   return {
@@ -30,11 +34,6 @@ export function wahrheit(): Patch {
     midiProgram: 48, // A71
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       applyEffects(midiEvent, midiOut, effects);
-
-      if (midiEvent.portName === EXPRESS_PEDAL && midiEvent.message.type === 'ControlChange') {
-        midiOut.controlChange(THROUGH_PORT, MOD, midiEvent.message.value);
-        midiOut.controlChange(USB_MIDI_ADAPTER, MOD, midiEvent.message.value);
-      }
     }
   }
 }

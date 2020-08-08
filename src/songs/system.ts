@@ -1,11 +1,10 @@
 import {HarmonyDrum} from '../effects/harmony-drum';
 import {MidiEvent} from '../midi-event';
 import {filterBy, filterByNoteInRange, filterByNoteOnInRange} from '../midi-filter';
-import {MidiMessage} from '../midi-message';
 import {MidiOut} from '../midi-out';
+import {HAND_SONIC, THROUGH_PORT} from '../midi-ports';
 import {A4} from '../midi_notes';
 import {applyEffects, Patch} from '../patch';
-import {HAND_SONIC, THROUGH_PORT} from './midi-ports';
 
 export function system(): Patch {
   const commonHarmonyDrum = {
