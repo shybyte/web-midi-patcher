@@ -4,40 +4,40 @@ import {CUTOFF} from '../microkorg';
 import {MidiEvent} from '../midi-event';
 import {filterBy, filterNoteOnByPort} from '../midi-filter';
 import {MidiOut} from '../midi-out';
-import {EXPRESS_PEDAL, THROUGH_PORT, USB_MIDI_ADAPTER, VIRTUAL_KEYBOARD, VMPK} from '../midi-ports';
+import {EXPRESS_PEDAL, HAND_SONIC, MICRO_KORG, THROUGH_PORT,} from '../midi-ports';
 import {applyEffects, Patch} from '../patch';
-import {mapRange, rangeMapper} from '../utils';
+import {rangeMapper} from '../utils';
 
 export function young(): Patch {
   const commonHarmonyDrum = {
-    baseNoteInputFilter: filterNoteOnByPort(VMPK),
+    baseNoteInputFilter: filterNoteOnByPort(MICRO_KORG),
     resetDuration: 10_0000,
     noteDuration: 100,
-    outputPortName: THROUGH_PORT,
+    outputPortName: MICRO_KORG,
   };
 
   const effects = [
     new HarmonyDrum({
       ...commonHarmonyDrum,
-      trigger: filterBy(VIRTUAL_KEYBOARD, 71),
+      trigger: filterBy(HAND_SONIC, 61),
       noteOffsets: [0]
     }),
     new HarmonyDrum({
       ...commonHarmonyDrum,
-      trigger: filterBy(VIRTUAL_KEYBOARD, 72),
+      trigger: filterBy(HAND_SONIC, 62),
       noteOffsets: [7, 12, 19]
     }),
-    new ControlForwarder(EXPRESS_PEDAL, USB_MIDI_ADAPTER, CUTOFF, rangeMapper([0, 255], [10, 255])),
+    new ControlForwarder(EXPRESS_PEDAL, MICRO_KORG, CUTOFF, rangeMapper([0, 127], [10, 127])),
   ];
 
   return {
     name: 'Young',
-    midiProgram: 28, // A45
-    drumProgram: 106,
+    midiProgram:  28, // a45
+    drumProgram: 103,
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       applyEffects(midiEvent, midiOut, effects);
 
-      if (midiEvent.portName === EXPRESS_PEDAL && midiEvent.message.type === 'ControlChange') {
+      if (midiEvent.comesFrom(EXPRESS_PEDAL) && midiEvent.message.type === 'ControlChange') {
         midiOut.pitchBendChange(THROUGH_PORT, midiEvent.message.value)
       }
     }

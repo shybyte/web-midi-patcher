@@ -10,7 +10,7 @@ export class MidiOut {
   }
 
   public send(portName: string, message: [number, number] | [number, number, number] | Uint8Array | MidiMessage) {
-    const port = this.midiOutputs.find(it => it.name === portName);
+    const port = this.midiOutputs.find(it => it.name?.includes(portName));
     if (!port) {
       console.warn(`Can't find port name "${portName}"`);
       return;

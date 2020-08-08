@@ -6,7 +6,7 @@ import {CUTOFF, MOD, OSC2_SEMITONE} from '../microkorg';
 import {MidiEvent} from '../midi-event';
 import {filterBy, filterNoteOnByPort} from '../midi-filter';
 import {MidiOut} from '../midi-out';
-import {EXPRESS_PEDAL, HAND_SONIC, THROUGH_PORT, USB_MIDI_ADAPTER} from '../midi-ports';
+import {EXPRESS_PEDAL, HAND_SONIC, THROUGH_PORT, MICRO_KORG} from '../midi-ports';
 import {applyEffects, Patch} from '../patch';
 
 export function diktator(): Patch {
@@ -18,7 +18,7 @@ export function diktator(): Patch {
   const commonControlSequencer = {step_duration: calcStepDuration(defaultBeatDuration)};
 
   const beatTracker = new BeatDurationTracker({
-    filter: filterNoteOnByPort(USB_MIDI_ADAPTER),
+    filter: filterNoteOnByPort(MICRO_KORG),
     defaultBeatDuration: defaultBeatDuration
   });
 
@@ -26,7 +26,7 @@ export function diktator(): Patch {
 
   const controlSequencerKorg = new ControlSequencer({
     ...commonControlSequencer,
-    outputPortName: USB_MIDI_ADAPTER,
+    outputPortName: MICRO_KORG,
     trigger: handSonicBaseDrum,
     control: OSC2_SEMITONE,
     values: [126, 114, 96, 78, 126, 126, 114, 114, 64]
@@ -44,14 +44,14 @@ export function diktator(): Patch {
   const effects = [
     controlSequencerKorg,
     controlSequencerThroughPort,
-    new ControlForwarder(EXPRESS_PEDAL, USB_MIDI_ADAPTER, CUTOFF)
+    new ControlForwarder(EXPRESS_PEDAL, MICRO_KORG, CUTOFF)
   ];
 
   return {
     name: 'Diktator',
     midiProgram: 43, // A64
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
-      if (midiEvent.portName === USB_MIDI_ADAPTER &&
+      if (midiEvent.comesFrom(MICRO_KORG) &&
         midiEvent.message.type === 'ControlChange' && midiEvent.message.control == MOD
       ) {
         korgModValue = midiEvent.message.value;

@@ -7,4 +7,8 @@ export class MidiEvent {
     public readonly portName: string
   ) {
   }
+
+  comesFrom(...portNameParts: string[]) {
+    return  portNameParts.some(it => this.portName.includes(it));
+  }
 }

@@ -6,7 +6,7 @@ import {MidiEvent} from '../midi-event';
 import {filterBy, filterNoteOnByPort} from '../midi-filter';
 import {MidiOut} from '../midi-out';
 import {applyEffects, Patch} from '../patch';
-import {EXPRESS_PEDAL, HAND_SONIC, THROUGH_PORT, USB_MIDI_ADAPTER, VMPK} from '../midi-ports';
+import {EXPRESS_PEDAL, HAND_SONIC, THROUGH_PORT, MICRO_KORG, VMPK} from '../midi-ports';
 import {rangeMapper} from '../utils';
 
 export function wahrheit(): Patch {
@@ -20,13 +20,13 @@ export function wahrheit(): Patch {
     }),
     new ControlSequenceStepper({
       trigger: filterBy(HAND_SONIC, 74),
-      outputPortName: USB_MIDI_ADAPTER,
+      outputPortName: MICRO_KORG,
       control: OSC2_SEMITONE,
       values: [64, 95],
       resetFilter: filterBy(HAND_SONIC, 70)
     }),
     new ControlForwarder(EXPRESS_PEDAL, THROUGH_PORT, MOD),
-    new ControlForwarder(EXPRESS_PEDAL, USB_MIDI_ADAPTER, MOD),
+    new ControlForwarder(EXPRESS_PEDAL, MICRO_KORG, MOD),
   ];
 
   return {
