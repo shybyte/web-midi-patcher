@@ -10,12 +10,20 @@ export interface ControlSequencerProps {
   readonly control: number,
   readonly values: number[];
   readonly step_duration: number;
+  readonly outputValueMapper?: (value: number) => number;
 }
+
+export interface ControlSequencerPropsInternal extends ControlSequencerProps {
+  readonly outputValueMapper: (value: number) => number;
+}
+
 
 export class ControlSequencer implements Effect {
   player?: ControlSequencePlayer;
+  props: ControlSequencerPropsInternal;
 
-  constructor(private props: ControlSequencerProps) {
+  constructor(props: ControlSequencerProps) {
+    this.props = {...props, outputValueMapper: (x) => x};
   }
 
   set stepDuration(valueMs: number) {
@@ -38,8 +46,8 @@ export class ControlSequencer implements Effect {
   }
 }
 
-type  ControlSequencePlayerProps = Pick<ControlSequencerProps,
-  'outputPortName' | 'control' | 'values' | 'step_duration'>
+type  ControlSequencePlayerProps = Pick<ControlSequencerPropsInternal,
+  'outputPortName' | 'control' | 'values' | 'step_duration' | 'outputValueMapper'>
 
 
 class ControlSequencePlayer {
@@ -53,9 +61,10 @@ class ControlSequencePlayer {
     const {props} = this;
     while (this.valueIndex < props.values.length && !this.stopped) {
       const value = props.values[this.valueIndex];
-      console.log('Send Value!', value, this.valueIndex);
+      const outputValue = props.outputValueMapper(value);
+      console.log('Send Value!', outputValue, value, this.valueIndex);
       this.valueIndex += 1;
-      midiOut.controlChange(props.outputPortName, props.control, value);
+      midiOut.controlChange(props.outputPortName, props.control, outputValue);
       if (this.valueIndex < props.values.length) {
         await waitMs(this.props.step_duration);
       }

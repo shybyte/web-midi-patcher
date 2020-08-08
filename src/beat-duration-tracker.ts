@@ -18,7 +18,7 @@ export class BeatDurationTracker {
     return this.#beatDuration;
   }
 
-  async onMidiEvent(midiEvent: MidiEvent) {
+  onMidiEvent(midiEvent: MidiEvent) {
     const props = this.props;
 
     if (!props.filter(midiEvent)) {
