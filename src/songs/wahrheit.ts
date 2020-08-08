@@ -1,21 +1,21 @@
 import {ControlForwarder} from '../effects/control-forwarder';
 import {ControlSequenceStepper} from '../effects/control-sequence-stepper';
 import {HarmonyDrum} from '../effects/harmony-drum';
-import {CUTOFF, MOD, OSC2_SEMITONE} from '../microkorg';
+import {MOD, OSC2_SEMITONE} from '../microkorg';
 import {MidiEvent} from '../midi-event';
-import {filterByNoteOn, filterNoteOnByPort} from '../midi-filter';
+import {filterByNoteOn, filterByNoteOnInRange} from '../midi-filter';
 import {MidiOut} from '../midi-out';
+import {EXPRESS_PEDAL, HAND_SONIC, MICRO_KORG, THROUGH_PORT} from '../midi-ports';
+import {C2, C4} from '../midi_notes';
 import {applyEffects, Patch} from '../patch';
-import {EXPRESS_PEDAL, HAND_SONIC, THROUGH_PORT, MICRO_KORG, VMPK} from '../midi-ports';
-import {rangeMapper} from '../utils';
 
 export function wahrheit(): Patch {
   const effects = [
     new HarmonyDrum({
-      baseNoteInputFilter: filterNoteOnByPort(VMPK),
+      baseNoteInputFilter: filterByNoteOnInRange(MICRO_KORG, [C2, C4]),
       outputPortName: THROUGH_PORT,
       trigger: filterByNoteOn(HAND_SONIC, 74),
-      noteOffsets: [12],
+      noteOffsets: [0],
       noteDuration: 100
     }),
     new ControlSequenceStepper({

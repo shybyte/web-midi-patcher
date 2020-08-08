@@ -30,14 +30,18 @@ export class HarmonyDrum implements Effect {
 
   async onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
     const props = this.props;
+
+    if (props.resetFilter && props.resetFilter(midiEvent)) {
+      console.log('HarmonyDrum: reset');
+      this.noteOffsetIndex = 0;
+    }
+
     if (props.baseNoteInputFilter(midiEvent) && midiEvent.message.type === 'NoteOn') {
       this.baseNote = midiEvent.message.note;
       console.log('HarmonyDrum: New baseNote:', this.baseNote);
     } else if (props.trigger(midiEvent) && midiEvent.message.type === 'NoteOn') {
       console.log('HarmonyDrum: triggered', midiEvent);
-      const needsResetByFilter = props.resetFilter && props.resetFilter(midiEvent);
-      const needsTimeByTime = props.resetDuration && midiEvent.receivedTime - this.lastTimestamp > props.resetDuration;
-      if (needsResetByFilter && needsTimeByTime) {
+      if (props.resetDuration && midiEvent.receivedTime - this.lastTimestamp > props.resetDuration) {
         this.noteOffsetIndex = 0;
       }
       this.lastTimestamp = midiEvent.receivedTime;

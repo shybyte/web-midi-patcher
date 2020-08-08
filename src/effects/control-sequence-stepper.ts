@@ -20,17 +20,15 @@ export class ControlSequenceStepper implements Effect {
   async onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
     const props = this.props;
 
-    if (!(props.trigger(midiEvent))) {
-      return;
-    }
-
     if (props.resetFilter(midiEvent)) {
       this.valueIndex = 0;
     }
 
-    const value = props.values[this.valueIndex];
-    console.log('Send Value!', value);
-    this.valueIndex = (this.valueIndex + 1) % props.values.length;
-    midiOut.controlChange(props.outputPortName, props.control, value);
+    if (props.trigger(midiEvent)) {
+      const value = props.values[this.valueIndex];
+      console.log('Send Value!', value);
+      this.valueIndex = (this.valueIndex + 1) % props.values.length;
+      midiOut.controlChange(props.outputPortName, props.control, value);
+    }
   }
 }
