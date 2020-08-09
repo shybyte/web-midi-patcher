@@ -28,7 +28,7 @@ async function start() {
 
   function selectPatchFromPageHash() {
     patches = patchFactories.map((it) => it());
-    const hash = location.hash.slice(1);
+    const hash = decodeURIComponent(location.hash.slice(1));
     currentPatch = patches.find(it => it.name === hash) || currentPatch;
     midiOut.programChange(HAND_SONIC, currentPatch.drumProgram ?? 107);
     renderPatchSelection(currentPatch);

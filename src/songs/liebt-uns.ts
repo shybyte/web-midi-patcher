@@ -33,7 +33,6 @@ export function liebtUns(): Patch {
   return {
     name: 'Liebt uns',
     midiProgram: 113, // b72
-    drumProgram: 106,
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       applyEffects(midiEvent, midiOut, effects);
     }
