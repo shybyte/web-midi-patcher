@@ -17,6 +17,13 @@ export function filterByNoteOn(portName: string, note: number): MidiFilter {
     midiEvent.message.note === note;
 }
 
+export function filterByNoteOff(portName: string, note: number): MidiFilter {
+  return (midiEvent) =>
+    midiEvent.comesFrom(portName) &&
+    midiEvent.message.type === 'NoteOff' &&
+    midiEvent.message.note === note;
+}
+
 export function filterByNoteOnInRange(portName: string, noteRange: [number, number]): MidiFilter {
   return (midiEvent) =>
     midiEvent.comesFrom(portName) &&
@@ -39,8 +46,9 @@ export function filterByNote(portName: string, note: U7): MidiFilter {
 }
 
 
-export function ifControlValueInRange(portName: string, control: U7, range: NumberRange, filter: MidiFilter): MidiFilter {
+export function isControlValueInRange(portName: string, control: U7, range: NumberRange): MidiFilter {
   let inRange = false;
+
   return (midiEvent: MidiEvent) => {
     if (
       midiEvent.comesFrom(portName) &&
@@ -50,6 +58,22 @@ export function ifControlValueInRange(portName: string, control: U7, range: Numb
       inRange = isInRange(midiEvent.message.value, range);
     }
 
-    return inRange ? filter(midiEvent) : false;
+    return inRange;
   };
-};
+}
+
+export function and(filter1: MidiFilter, filter2: MidiFilter): MidiFilter {
+  return (midiEvent: MidiEvent) => {
+    const filter1Result = filter1(midiEvent);
+    const filter2Result = filter2(midiEvent);
+    return filter1Result && filter2Result;
+  };
+}
+
+export function or(filter1: MidiFilter, filter2: MidiFilter): MidiFilter {
+  return (midiEvent: MidiEvent) => {
+    const filter1Result = filter1(midiEvent);
+    const filter2Result = filter2(midiEvent);
+    return filter1Result || filter2Result;
+  };
+}
