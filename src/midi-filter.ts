@@ -1,5 +1,6 @@
 import {MidiEvent} from './midi-event';
 import {U7} from './midi-message';
+import {isInRange, NumberRange} from './utils';
 
 export type MidiFilter = (midiEvent: MidiEvent) => boolean;
 
@@ -36,3 +37,19 @@ export function filterByNote(portName: string, note: U7): MidiFilter {
     (midiEvent.message.type === 'NoteOn' || midiEvent.message.type === 'NoteOff') &&
     midiEvent.message.note === note;
 }
+
+
+export function ifControlValueInRange(portName: string, control: U7, range: NumberRange, filter: MidiFilter): MidiFilter {
+  let inRange = false;
+  return (midiEvent: MidiEvent) => {
+    if (
+      midiEvent.comesFrom(portName) &&
+      midiEvent.message.type === 'ControlChange' &&
+      midiEvent.message.control === control
+    ) {
+      inRange = isInRange(midiEvent.message.value, range);
+    }
+
+    return inRange ? filter(midiEvent) : false;
+  };
+};

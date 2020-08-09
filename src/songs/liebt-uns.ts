@@ -1,11 +1,10 @@
 import {ControlForwarder} from '../effects/control-forwarder';
 import {HarmonyDrum} from '../effects/harmony-drum';
-import {CUTOFF, MOD} from '../microkorg';
+import {CUTOFF, VOLUME} from '../microkorg';
 import {MidiEvent} from '../midi-event';
-import {filterByNoteOn, filterByNote, filterByNoteInRange, filterByNoteOnInRange, filterNoteOnByPort} from '../midi-filter';
+import {filterByNote, filterNoteOnByPort, ifControlValueInRange} from '../midi-filter';
 import {MidiOut} from '../midi-out';
-import {EXPRESS_PEDAL, HAND_SONIC, THROUGH_PORT, MICRO_KORG} from '../midi-ports';
-import {A4} from '../midi_notes';
+import {EXPRESS_PEDAL, HAND_SONIC, MICRO_KORG} from '../midi-ports';
 import {applyEffects, Patch} from '../patch';
 
 export function liebtUns(): Patch {
@@ -18,7 +17,8 @@ export function liebtUns(): Patch {
   function mapHandSonicToNoteOffset(triggerNote: number, noteOffset: number) {
     return new HarmonyDrum({
       ...commonHarmonyDrum,
-      trigger: filterByNote(HAND_SONIC, triggerNote),
+      trigger: ifControlValueInRange(EXPRESS_PEDAL, VOLUME, [10, 128],
+        filterByNote(HAND_SONIC, triggerNote)),
       noteOffsets: [noteOffset],
     });
   }
@@ -26,7 +26,7 @@ export function liebtUns(): Patch {
   const effects = [
     mapHandSonicToNoteOffset(74, 0),
     mapHandSonicToNoteOffset(60, 12),
-    mapHandSonicToNoteOffset(67, 7),
+    mapHandSonicToNoteOffset(64, 7),
     new ControlForwarder(EXPRESS_PEDAL, MICRO_KORG, CUTOFF),
   ];
 
