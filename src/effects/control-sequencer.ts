@@ -23,7 +23,7 @@ export class ControlSequencer implements Effect {
   props: ControlSequencerPropsInternal;
 
   constructor(props: ControlSequencerProps) {
-    this.props = {...props, outputValueMapper: (x) => x};
+    this.props = {outputValueMapper: (x) => x, ...props};
   }
 
   set stepDuration(valueMs: number) {

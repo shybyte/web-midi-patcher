@@ -6,7 +6,7 @@ import {CUTOFF, MOD, OSC2_SEMITONE} from '../microkorg';
 import {MidiEvent} from '../midi-event';
 import {filterByNoteOn, filterNoteOnByPort} from '../midi-filter';
 import {MidiOut} from '../midi-out';
-import {EXPRESS_PEDAL, HAND_SONIC, THROUGH_PORT, MICRO_KORG} from '../midi-ports';
+import {EXPRESS_PEDAL, HAND_SONIC, MICRO_KORG, THROUGH_PORT} from '../midi-ports';
 import {applyEffects, Patch} from '../patch';
 
 export function diktator(): Patch {
@@ -22,7 +22,7 @@ export function diktator(): Patch {
     defaultBeatDuration: defaultBeatDuration
   });
 
-  const handSonicBaseDrum = filterByNoteOn(HAND_SONIC, 71);
+  const handSonicBaseDrum = filterByNoteOn(HAND_SONIC, 74);
 
   const controlSequencerKorg = new ControlSequencer({
     ...commonControlSequencer,
@@ -38,7 +38,7 @@ export function diktator(): Patch {
     trigger: handSonicBaseDrum,
     control: MOD,
     values: [126, 114, 96, 78, 0],
-    outputValueMapper: (x) => x * korgModValue
+    outputValueMapper: (x) => x * korgModValue / 127
   });
 
   const effects = [
@@ -55,6 +55,7 @@ export function diktator(): Patch {
         midiEvent.message.type === 'ControlChange' && midiEvent.message.control == MOD
       ) {
         korgModValue = midiEvent.message.value;
+        console.log('korgModValue', korgModValue);
       }
 
       beatTracker.onMidiEvent(midiEvent);

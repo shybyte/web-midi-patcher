@@ -30,6 +30,7 @@ export class BeatDurationTracker {
     const maxAcceptableDuration = props.defaultBeatDuration * 3 / 2;
     if (minAcceptableDuration < lastBeatDuration && lastBeatDuration < maxAcceptableDuration) {
       this.#beatDuration = lastBeatDuration;
+      console.log('Beatduration:', this.#beatDuration);
     }
 
     this.lastTimeStamp = Date.now();

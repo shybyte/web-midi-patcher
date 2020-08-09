@@ -24,7 +24,7 @@ async function start() {
 
   const patchFactories = [young, wahrheit, system, diktator, liebtUns];
   let patches = patchFactories.map((it) => it());
-  let currentPatch: Patch;
+  let currentPatch: Patch = patches[0];
 
   function selectPatchFromPageHash() {
     patches = patchFactories.map((it) => it());
@@ -43,7 +43,7 @@ async function start() {
         return; // Ignore e.g. clock events
       }
 
-      console.log(midiEvent, midiMessage);
+      // console.log(midiEvent, midiMessage);
 
       if (midiMessage.type === 'ProgramChange' && midiEvent.comesFrom(...PROGRAMM_CHANGE_INPUT_PORTS)) {
         const newSelectedPatch = patches.find(it => it.midiProgram === midiMessage.number);
