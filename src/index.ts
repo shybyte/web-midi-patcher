@@ -5,6 +5,7 @@ import {MidiOut} from './midi-out';
 import {Patch} from './patch';
 import {diktator} from './songs/diktator';
 import {HAND_SONIC, THROUGH_PORT} from './midi-ports';
+import {endzeit} from './songs/endzeit';
 import {liebtUns} from './songs/liebt-uns';
 import {system} from './songs/system';
 import {wahrheit} from './songs/wahrheit';
@@ -22,7 +23,7 @@ async function start() {
   console.log('Outputs:', [...midiAccess.outputs.values()].map(it => it.name));
   const midiOut = new MidiOut(midiAccess.outputs);
 
-  const patchFactories = [young, wahrheit, system, diktator, liebtUns];
+  const patchFactories = [young, wahrheit, system, diktator, liebtUns, endzeit];
   let patches = patchFactories.map((it) => it());
   let currentPatch: Patch = patches[0];
 
