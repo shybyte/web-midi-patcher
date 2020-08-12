@@ -1,3 +1,5 @@
+import {MidiOut} from './midi-out';
+import {THROUGH_PORT} from './midi-ports';
 import {Patch} from './patch';
 
 type PatchSelectionHandler = (selectedPatch: Patch) => void;
@@ -38,5 +40,15 @@ export function renderPatchSelection(selectedPatch: Patch) {
   for (const patchEl of patchListItems) {
     patchEl.setAttribute('aria-selected',
       patchEl.textContent === selectedPatch.name ? 'true' : 'false');
+  }
+}
+
+export function connectControls(midiOut: MidiOut) {
+  const inputs = document.querySelectorAll<HTMLInputElement>('#controls input');
+  for (const input of inputs) {
+    input.addEventListener('input', (event) => {
+      const controlIndex = parseInt(input.dataset['control']!);
+      midiOut.controlChange(THROUGH_PORT, controlIndex, input.valueAsNumber);
+    });
   }
 }

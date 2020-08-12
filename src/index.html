@@ -11,6 +11,15 @@
 <div id="app">
   <button id="panicButton">Panic</button>
   <ul id="patches"></ul>
+
+  <div id="controls">
+    <fieldset>
+      <legend>Filter</legend>
+      <label><input type="range" data-control="74" max="127">Cutoff</label>
+      <label><input type="range" data-control="71" max="127">Resonance</label>
+      <label><input type="range" data-control="72" max="127">Saturation</label>
+    </fieldset>
+  </div>
 </div>
 
 <script src="./index.ts"></script>

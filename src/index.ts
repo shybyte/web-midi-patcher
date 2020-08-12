@@ -8,9 +8,10 @@ import {HAND_SONIC, THROUGH_PORT} from './midi-ports';
 import {endzeit} from './songs/endzeit';
 import {liebtUns} from './songs/liebt-uns';
 import {system} from './songs/system';
+import {test} from './songs/test';
 import {wahrheit} from './songs/wahrheit';
 import {young} from './songs/young';
-import {renderInitialView, renderPatchSelection, switchPatchPage} from './view';
+import {connectControls, renderInitialView, renderPatchSelection, switchPatchPage} from './view';
 
 type MIDIMessageEvent = WebMidi.MIDIMessageEvent;
 
@@ -23,7 +24,7 @@ async function start() {
   console.log('Outputs:', [...midiAccess.outputs.values()].map(it => it.name));
   const midiOut = new MidiOut(midiAccess.outputs);
 
-  const patchFactories = [young, wahrheit, system, diktator, liebtUns, endzeit];
+  const patchFactories = [test, young, wahrheit, system, diktator, liebtUns, endzeit];
   let patches = patchFactories.map((it) => it());
   let currentPatch: Patch = patches[0];
 
@@ -65,6 +66,8 @@ async function start() {
 
   window.addEventListener('hashchange', selectPatchFromPageHash);
   selectPatchFromPageHash();
+
+  connectControls(midiOut);
 }
 
 start();
