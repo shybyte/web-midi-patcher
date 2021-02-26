@@ -24,10 +24,10 @@ export function young(): Patch {
     }),
     new HarmonyDrum({
       ...commonHarmonyDrum,
-      trigger: filterByNote(HAND_SONIC, 62),
+      trigger: filterByNote(HAND_SONIC, 63),
       noteOffsets: [7, 12, 19]
     }),
-    new ControlForwarder(EXPRESS_PEDAL, MICRO_KORG, CUTOFF, rangeMapper([0, 127], [0, 127])),
+    new ControlForwarder(EXPRESS_PEDAL, MICRO_KORG, CUTOFF, rangeMapper([0, 127], [10, 127])),
   ];
 
   return {
