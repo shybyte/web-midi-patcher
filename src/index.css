@@ -42,3 +42,7 @@ ul {
 fieldset label {
   display: block;
 }
+
+#currentPatchStatusDisplay {
+  margin-top: 10px;
+}

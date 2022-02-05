@@ -5,6 +5,10 @@ export interface Effect {
   onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut): void;
 }
 
+export interface PatchProps {
+  setStatusDisplayHtml(html: string): void;
+}
+
 export interface Patch extends Effect {
   name: string;
   drumProgram?: number;

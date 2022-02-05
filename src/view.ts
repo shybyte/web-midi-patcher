@@ -24,11 +24,22 @@ function renderPatches(patches: Patch[]) {
   });
 }
 
-export function renderInitialView(patches: Patch[], handlePanicButton: () => void) {
+export interface View {
+  setCurrentPatchDisplay(html: string): void;
+}
+
+export function renderInitialView(patches: Patch[], handlePanicButton: () => void): View {
   const panicButton = document.getElementById('panicButton')!;
   panicButton.addEventListener('click', handlePanicButton);
 
   renderPatches(patches);
+
+  const currentPatchStatusDisplay = document.getElementById('currentPatchStatusDisplay')!;
+  return {
+    setCurrentPatchDisplay(html: string) {
+      currentPatchStatusDisplay.innerHTML = html;
+    }
+  }
 }
 
 export function switchPatchPage(patch: Patch) {

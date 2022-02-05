@@ -1,11 +1,13 @@
 import {MidiEvent} from '../midi-event';
 import {MidiFilter} from '../midi-filter';
 import {MidiOut} from '../midi-out';
+import {MidiNote} from '../midi_notes';
 import {Effect} from '../patch';
 import {waitMs} from '../utils';
 
 export interface HarmonyDrumProps {
   baseNoteInputFilter: MidiFilter;
+  getBaseNote?: (midiEvent: MidiEvent) => MidiNote | undefined;
   trigger: MidiFilter;
   outputPortName: string;
   noteOffsets: number[];
@@ -34,6 +36,14 @@ export class HarmonyDrum implements Effect {
     if (props.resetFilter && props.resetFilter(midiEvent)) {
       console.log('HarmonyDrum: reset');
       this.noteOffsetIndex = 0;
+    }
+
+    if (props.getBaseNote) {
+      const baseNote = props.getBaseNote(midiEvent);
+      if (baseNote && this.baseNote !== baseNote) {
+        this.baseNote = baseNote;
+        console.log('HarmonyDrum: New baseNote:', this.baseNote);
+      }
     }
 
     if (props.baseNoteInputFilter(midiEvent) && midiEvent.message.type === 'NoteOn') {

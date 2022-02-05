@@ -2,17 +2,18 @@ import {PROGRAMM_CHANGE_INPUT_PORTS} from './config';
 import {MidiEvent} from './midi-event';
 import {MidiMessage} from './midi-message';
 import {MidiOut} from './midi-out';
+import {HAND_SONIC, THROUGH_PORT} from './midi-ports';
 import {Patch} from './patch';
 import {diktator} from './songs/diktator';
-import {HAND_SONIC, THROUGH_PORT} from './midi-ports';
 import {endzeit} from './songs/endzeit';
 import {jam} from './songs/jam';
 import {liebtUns} from './songs/liebt-uns';
+import {pedalBaseNote} from './songs/pedal-base-note';
 import {system} from './songs/system';
 import {test} from './songs/test';
 import {wahrheit} from './songs/wahrheit';
 import {young} from './songs/young';
-import {connectControls, renderInitialView, renderPatchSelection, switchPatchPage} from './view';
+import {connectControls, renderInitialView, renderPatchSelection, switchPatchPage, View} from './view';
 
 type MIDIMessageEvent = WebMidi.MIDIMessageEvent;
 
@@ -25,15 +26,22 @@ async function start() {
   console.log('Outputs:', [...midiAccess.outputs.values()].map(it => it.name));
   const midiOut = new MidiOut(midiAccess.outputs);
 
-  const patchFactories = [jam, test, young, wahrheit, system, diktator, liebtUns, endzeit];
+  let view: View;
+
+  function setStatusDisplayHtml(html: string) {
+    view.setCurrentPatchDisplay(html);
+  }
+
+  const patchFactories = [pedalBaseNote, jam, test, young, wahrheit, system, diktator, liebtUns, endzeit];
   // const patchFactories = [jam];
-  let patches = patchFactories.map((it) => it());
+  let patches = patchFactories.map((it) => it({setStatusDisplayHtml}));
   let currentPatch: Patch = patches[0];
 
   function selectPatchFromPageHash() {
-    patches = patchFactories.map((it) => it());
+    patches = patchFactories.map((it) => it({setStatusDisplayHtml}));
     const hash = decodeURIComponent(location.hash.slice(1));
     currentPatch = patches.find(it => it.name === hash) || currentPatch;
+    view.setCurrentPatchDisplay('');
     midiOut.programChange(HAND_SONIC, currentPatch.drumProgram ?? 107);
     renderPatchSelection(currentPatch);
   }
@@ -62,7 +70,7 @@ async function start() {
     })
   }
 
-  renderInitialView(patches, () => {
+  view = renderInitialView(patches, () => {
     midiOut.allSoundsOff();
   });
 
