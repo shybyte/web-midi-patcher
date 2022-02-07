@@ -4,11 +4,14 @@ export const C2 = 24;
 export const C3 = 36;
 export const D3 = 38;
 export const A3 = 45;
+
 export const C4 = 48;
 export const D4 = 50;
 export const E4 = 52;
 export const F4 = 53;
+export const G4 = 55;
 export const A4 = 57;
+export const B4 = 58;
 
 export const C5 = 60;
 export const CIS5 = 61;
