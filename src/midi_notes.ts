@@ -1,9 +1,19 @@
 export type MidiNote = number;
 
 export const C2 = 24;
+
+export const A2 = 33;
+export const B2 = 34;
+export const H2 = 35;
+
 export const C3 = 36;
 export const D3 = 38;
+export const E3 = 40;
+export const F3 = 41;
+export const G3 = 43;
 export const A3 = 45;
+export const B3 = 46;
+export const H3 = 47;
 
 export const C4 = 48;
 export const D4 = 50;
@@ -23,6 +33,7 @@ export const A5 = 69;
 export const B5 = 70;
 
 export const C6 = 72;
+export const A6 = 81;
 export const C7 = 84;
 
 const NOTE_NAMES = ['C', 'Cis', 'D', 'Dis', 'E', 'F', 'Fis', 'G', 'Gis', 'A', 'B', 'H'];
