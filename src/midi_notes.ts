@@ -22,6 +22,7 @@ export const F4 = 53;
 export const G4 = 55;
 export const A4 = 57;
 export const B4 = 58;
+export const H4 = 58;
 
 export const C5 = 60;
 export const CIS5 = 61;

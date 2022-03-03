@@ -9,6 +9,7 @@ import {endzeit} from './songs/endzeit';
 import {jam} from './songs/jam';
 import {liebtUns} from './songs/liebt-uns';
 import {pedalBaseNote} from './songs/pedal-base-note';
+import {sequenceDrums} from './songs/sequence-drums';
 import {system} from './songs/system';
 import {test} from './songs/test';
 import {wahrheit} from './songs/wahrheit';
@@ -32,7 +33,7 @@ async function start() {
     view.setCurrentPatchDisplay(html);
   }
 
-  const patchFactories = [pedalBaseNote, jam, test, young, wahrheit, system, diktator, liebtUns, endzeit];
+  const patchFactories = [sequenceDrums, pedalBaseNote, jam, test, young, wahrheit, system, diktator, liebtUns, endzeit];
   // const patchFactories = [jam];
   let patches = patchFactories.map((it) => it({setStatusDisplayHtml}));
   let currentPatch: Patch = patches[0];

@@ -22,3 +22,16 @@ export function rangeMapper(sourceRange: NumberRange, targetRange: NumberRange) 
 export function isInRange(value: number, range: NumberRange) {
   return range[0] <= value && value < range[1];
 }
+
+/**
+ * https://fnune.com/typescript/2019/01/30/typescript-series-1-record-is-usually-not-the-best-choice/
+ */
+export type Dictionary<K extends keyof any, T> = Partial<Record<K, T>>
+
+export function times<T>(n: number, callback: (i: number) => T): T[] {
+  const result = [];
+  for (let i = 0; i < n; i++) {
+    result.push(callback(i));
+  }
+  return result;
+}
