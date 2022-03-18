@@ -7,10 +7,12 @@ export const B2 = 34;
 export const H2 = 35;
 
 export const C3 = 36;
+export const Cis3 = 37;
 export const D3 = 38;
 export const Dis3 = 39;
 export const E3 = 40;
 export const F3 = 41;
+export const Fis3 = 42;
 export const G3 = 43;
 export const A3 = 45;
 export const B3 = 46;

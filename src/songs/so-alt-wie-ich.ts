@@ -5,7 +5,7 @@ import {MidiEvent} from '../midi-event';
 import {filterByNoteOn, filterNoteOnByPort} from '../midi-filter';
 import {MidiOut} from '../midi-out';
 import {EXPRESS_PEDAL, HAND_SONIC, MICRO_KORG, NTS, THROUGH_PORT, VMPK,} from '../midi-ports';
-import {A2, C3, C5, D3, D5, Dis3, E5, F3, F5, G3} from '../midi_notes';
+import {A2, A3, C3, C5, Cis3, D3, D5, Dis3, E3, E5, F3, F5, Fis3, G3, H3} from '../midi_notes';
 import {applyEffects, Patch, PatchProps} from '../patch';
 import {rangeMapper} from '../utils';
 
@@ -21,18 +21,22 @@ const NTS_CONTROLL = {
   OSC_ALT: 55,
 }
 
-// Cm, EsDur,
-export function sequenceDrums(props: PatchProps): Patch {
-  // const harmonies: Harmony[] = [
-  //   harmony(C5, repeatSequence(octaveUpSequence(C3), 4)),
-  //   harmony(D5, repeatSequence(octaveUpSequence(Dis3), 4)),
-  //   harmony(E5, repeatSequence(octaveUpSequence(F3), 4)),
-  // ];
+// A E D E
+// A h D
+// fis A E D
+// fis A cis E
+// fis h D A
+
+// cis D E fis A h
+export function soAltWieIch(props: PatchProps): Patch {
   const harmonies: Harmony[] = [
-    harmony(C5, repeatSequence(octaveUpSequence(A2), 4)),
-    harmony(D5, repeatSequence(octaveUpSequence(D3), 4)),
-    harmony(E5, repeatSequence(octaveUpSequence(F3), 4)),
-    harmony(F5, repeatSequence(octaveUpSequence(G3), 4)),
+    harmony(67, repeatSequence(octaveUpSequence(Cis3), 4)),
+    harmony(68, repeatSequence(octaveUpSequence(D3), 4)),
+    harmony(69, repeatSequence(octaveUpSequence(E3), 4)),
+    harmony(70, repeatSequence(octaveUpSequence(Fis3), 4)),
+    harmony(71, repeatSequence(octaveUpSequence(A3), 4)),
+    harmony(72, repeatSequence(octaveUpSequence(H3), 4)),
+
   ];
 
   const defaultBeatDuration = 500;
@@ -49,19 +53,19 @@ export function sequenceDrums(props: PatchProps): Patch {
     stepDuration: defaultBeatDuration / 4
   });
   const effects = [
-    new ControlForwarder(EXPRESS_PEDAL, OUT_DEVICE, NTS_CONTROLL.CUTOFF,
+    new ControlForwarder(EXPRESS_PEDAL, OUT_DEVICE, NTS_CONTROLL.OSC_ALT,
       rangeMapper([0, 127], [0, 127])
     ),
     sequenceDrum
   ]
 
   return {
-    name: 'Sequence-Drums',
+    name: 'So alt wie ich',
     midiProgram: 28, // a45
-    drumProgram: 110,
+    drumProgram: 111,
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       const midiMessage = midiEvent.message;
-      // console.log('midiEvent', midiEvent, midiMessage);
+      console.log('midiEvent', midiEvent, midiMessage);
       // beatTracker.onMidiEvent(midiEvent);
       // console.log('beatTracker.beatDuration', beatTracker.beatDuration);
       // sequenceDrum.stepDuration = beatTracker.beatDuration / 4
