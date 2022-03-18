@@ -8,6 +8,7 @@ export interface SequenceDrumProps {
   drumInputDevice: string;
   outputDevice: string;
   harmonies: Harmony[];
+  stepDuration: number;
 }
 
 export class SequenceDrum implements Effect {
@@ -16,9 +17,13 @@ export class SequenceDrum implements Effect {
   constructor(private props: SequenceDrumProps) {
   }
 
+  set stepDuration(valueMs: number) {
+    this.props = {...this.props, stepDuration: valueMs};
+  }
+
   onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
     const midiMessage = midiEvent.message;
-    console.log('midiEvent', midiEvent, midiMessage);
+    // console.log('midiEvent', midiEvent, midiMessage);
     if (midiMessage.type === 'NoteOn' && midiEvent.comesFrom(this.props.drumInputDevice)) {
       console.log('triggerNote', midiNoteToString(midiMessage.note));
       const harmony = this.props.harmonies.find(it => it.triggerNote === midiMessage.note);
@@ -27,12 +32,12 @@ export class SequenceDrum implements Effect {
           this.currentSequencePlayer.stop();
         }
 
-        console.log('harmony.baseSequence', harmony.baseSequence);
+        console.log('harmony.baseSequence', harmony.baseSequence, 'step_duration', this.props.stepDuration);
 
         this.currentSequencePlayer = new NoteSequencePlayer({
           notes: harmony.baseSequence,
           note_duration: 20,
-          step_duration: 130,
+          step_duration: this.props.stepDuration,
           outputPortName: this.props.outputDevice
         });
         this.currentSequencePlayer.start(midiOut);

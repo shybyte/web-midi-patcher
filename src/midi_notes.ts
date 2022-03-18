@@ -8,6 +8,7 @@ export const H2 = 35;
 
 export const C3 = 36;
 export const D3 = 38;
+export const Dis3 = 39;
 export const E3 = 40;
 export const F3 = 41;
 export const G3 = 43;
