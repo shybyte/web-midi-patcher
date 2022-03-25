@@ -13,6 +13,8 @@ export interface SequenceDrumProps {
 
 export class SequenceDrum implements Effect {
   private currentSequencePlayer: NoteSequencePlayer | undefined;
+  private currentHarmony?: Harmony;
+  private currentHarmonyNoteIndex = 0;
 
   constructor(private props: SequenceDrumProps) {
   }
@@ -26,11 +28,14 @@ export class SequenceDrum implements Effect {
     // console.log('midiEvent', midiEvent, midiMessage);
     if (midiMessage.type === 'NoteOn' && midiEvent.comesFrom(this.props.drumInputDevice)) {
       console.log('triggerNote', midiNoteToString(midiMessage.note));
+
       const harmony = this.props.harmonies.find(it => it.triggerNote === midiMessage.note);
       if (harmony) {
         if (this.currentSequencePlayer) {
           this.currentSequencePlayer.stop();
         }
+
+        this.currentHarmony = harmony;
 
         console.log('harmony.baseSequence', harmony.baseSequence, 'step_duration', this.props.stepDuration);
 
@@ -42,8 +47,22 @@ export class SequenceDrum implements Effect {
         });
         this.currentSequencePlayer.start(midiOut);
       }
+
+      const harmonyNotes = this.currentHarmony && this.currentHarmony.harmonyNotesByTriggerNode[midiMessage.note];
+      if (harmonyNotes) {
+        const harmonyNote = harmonyNotes[this.currentHarmonyNoteIndex % harmonyNotes.length];
+        playNoteAndNoteOff(midiOut, this.props.outputDevice, harmonyNote, 30);
+        this.currentHarmonyNoteIndex += 1
+      }
+
     }
   }
+}
+
+async function playNoteAndNoteOff(midiOut: MidiOut, outputPortName: string, note: MidiNote, durationMs: number) {
+  midiOut.noteOn(outputPortName, note);
+  await waitMs(durationMs)
+  midiOut.noteOff(outputPortName, note);
 }
 
 
