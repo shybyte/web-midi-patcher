@@ -9,6 +9,9 @@ export interface SequenceDrumProps {
   outputDevice: string;
   harmonies: Harmony[];
   stepDuration: number;
+  note_duration?: number;
+  harmonyNoteDuration?: number;
+  harmonyNoteChannel?: number;
 }
 
 export class SequenceDrum implements Effect {
@@ -41,7 +44,7 @@ export class SequenceDrum implements Effect {
 
         this.currentSequencePlayer = new NoteSequencePlayer({
           notes: harmony.baseSequence,
-          note_duration: 20,
+          note_duration: this.props.note_duration ?? 20,
           step_duration: this.props.stepDuration,
           outputPortName: this.props.outputDevice
         });
@@ -51,18 +54,23 @@ export class SequenceDrum implements Effect {
       const harmonyNotes = this.currentHarmony && this.currentHarmony.harmonyNotesByTriggerNode[midiMessage.note];
       if (harmonyNotes) {
         const harmonyNote = harmonyNotes[this.currentHarmonyNoteIndex % harmonyNotes.length];
-        playNoteAndNoteOff(midiOut, this.props.outputDevice, harmonyNote, 30);
+        playNoteAndNoteOff(midiOut, this.props.outputDevice, harmonyNote, this.props.harmonyNoteDuration ?? 200, this.props.harmonyNoteChannel ?? 0);
         this.currentHarmonyNoteIndex += 1
+      }
+
+      const droneNote = this.currentHarmony?.droneNote;
+      if (droneNote) {
+        playNoteAndNoteOff(midiOut, this.props.outputDevice, droneNote, 1000, 1)
       }
 
     }
   }
 }
 
-async function playNoteAndNoteOff(midiOut: MidiOut, outputPortName: string, note: MidiNote, durationMs: number) {
-  midiOut.noteOn(outputPortName, note);
+async function playNoteAndNoteOff(midiOut: MidiOut, outputPortName: string, note: MidiNote, durationMs: number, channel = 0) {
+  midiOut.noteOn(outputPortName, note, 127, channel);
   await waitMs(durationMs)
-  midiOut.noteOff(outputPortName, note);
+  midiOut.noteOff(outputPortName, note, 127, channel);
 }
 
 
@@ -78,15 +86,21 @@ export function repeatSequence<T>(array: T[], n: number): T[] {
   return result;
 }
 
-export function harmony(triggerNote: MidiNote, baseSequence: MidiNote[], harmonyNotesByTriggerNode: Dictionary<number, MidiNote[]> = {}): Harmony {
+export function harmony(
+  triggerNote: MidiNote,
+  baseSequence: MidiNote[],
+  harmonyNotesByTriggerNode: Dictionary<number, MidiNote[]> = {},
+  droneNote?: MidiNote,
+  ): Harmony {
   return {
-    triggerNote, baseSequence, harmonyNotesByTriggerNode
+    triggerNote, baseSequence, harmonyNotesByTriggerNode, droneNote
   }
 }
 
 export interface Harmony {
   triggerNote: MidiNote;
   baseSequence: MidiNote[];
+  droneNote?: MidiNote;
   harmonyNotesByTriggerNode: Dictionary<number, MidiNote[]>
 }
 

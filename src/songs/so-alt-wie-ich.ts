@@ -10,9 +10,9 @@ import {applyEffects, Patch, PatchProps} from '../patch';
 import {rangeMapper} from '../utils';
 
 // const DRUM_INPUT_DEVICE = VMPK;
-// const OUT_DEVICE = THROUGH_PORT;
+const OUT_DEVICE = THROUGH_PORT;
 const DRUM_INPUT_DEVICE = HAND_SONIC;
-const OUT_DEVICE = NTS;
+// const OUT_DEVICE = NTS;
 
 const NTS_CONTROLL = {
   CUTOFF: 43,

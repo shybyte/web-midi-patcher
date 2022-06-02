@@ -1,12 +1,13 @@
 type Channel = number;
 export type U7 = number;
-export type U4 = number;
+export type U14 = number;
 
 export type MidiMessage =
   | NoteOff
   | NoteOn
   | ControlChange
   | ProgramChange
+  | PitchBend
   | Unknown
 
 export type NoteOff = {
@@ -29,6 +30,13 @@ export type ControlChange = {
   control: U7
   value: U7
 }
+
+export type PitchBend = {
+  type: 'PitchBend';
+  channel: Channel;
+  value: U14; // Default 8192
+}
+
 
 export type ProgramChange = {
   type: 'ProgramChange'
@@ -70,6 +78,12 @@ export const MidiMessage = {
           control: rawMidiMessage.data[1],
           value: rawMidiMessage.data[2]
         };
+      case 0xE:
+        return {
+          type: 'PitchBend',
+          channel,
+          value: rawMidiMessage.data[2] * 128 + rawMidiMessage.data[1]
+        };
       case 0xC:
         return {
           type: 'ProgramChange',
@@ -84,13 +98,15 @@ export const MidiMessage = {
   toRaw(midiMessage: MidiMessage): RawMidiMessage {
     switch (midiMessage.type) {
       case 'NoteOn':
-        return [9 << 4 + midiMessage.channel, midiMessage.note, midiMessage.velocity];
+        return [0x90 + midiMessage.channel, midiMessage.note, midiMessage.velocity];
       case 'NoteOff':
-        return [8 << 4 + midiMessage.channel, midiMessage.note, midiMessage.velocity];
+        return [0x80 + midiMessage.channel, midiMessage.note, midiMessage.velocity];
       case 'ControlChange':
-        return [0xB << 4 + midiMessage.channel, midiMessage.control, midiMessage.value];
+        return [0xB0 + midiMessage.channel, midiMessage.control, midiMessage.value];
+      case 'PitchBend':
+        return [0xE0 + midiMessage.channel, midiMessage.value && 0xff, midiMessage.value >> 8];
       case 'ProgramChange':
-        return [0xC << 4 + midiMessage.channel, midiMessage.number];
+        return [0xC0 + midiMessage.channel, midiMessage.number];
       case 'Unknown':
         return midiMessage.data;
     }

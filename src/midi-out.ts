@@ -16,31 +16,31 @@ export class MidiOut {
       return;
     }
 
-    port.send( 'length' in message ? message : MidiMessage.toRaw(message));
+    port.send('length' in message ? message : MidiMessage.toRaw(message));
   }
 
   public noteOn(portName: string, note: U7, velocity = 127, channel = 0) {
-    this.send(portName, [9 << 4 + channel, note, velocity]);
+    this.send(portName, [0x90 + channel, note, velocity]);
   }
 
   public noteOff(portName: string, note: U7, velocity = 127, channel = 0) {
-    this.send(portName, [8 << 4 + channel, note, velocity]);
+    this.send(portName, [0x80 + channel, note, velocity]);
   }
 
   public programChange(portName: string, programNumber: U7, channel = 0) {
-    this.send(portName, [0xC << 4 + channel, programNumber]);
+    this.send(portName, [0xC0 + channel, programNumber]);
   }
 
   public controlChange(portName: string, control: U7, value: U7, channel = 0) {
-    this.send(portName, [0xB << 4 + channel, control, value]);
+    this.send(portName, [0xB0 + channel, control, value]);
   }
 
   public pitchBendChange(portName: string, value: U7, channel = 0) {
-    this.send(portName, [0xE << 4 + channel, value >> 8, value & 0xff]);
+    this.send(portName, [0xE0 + channel, value >> 8, value & 0xff]);
   }
 
   public allSoundsOff() {
-    for(const midiOutput of this.midiOutputs) {
+    for (const midiOutput of this.midiOutputs) {
       this.controlChange(midiOutput.name!, 120, 0); // All Sounds off
       this.controlChange(midiOutput.name!, 123, 0); // All Notes off
       console.log('allSoundsOff', midiOutput.name);

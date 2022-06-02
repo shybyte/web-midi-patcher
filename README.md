@@ -5,10 +5,24 @@ Just playing around...
 
 ## How to run
 
-    npm install
-    npm start
+    pnpm install
+    pnpm start
 
-Open [http://localhost:1234/](http://localhost:1234/) in a chrome based browser for live reload.
+Open [http://localhost:3000/src/index.html](http://localhost:3000/src/index.html) in a chrome based browser for live reload.
+
+## Linux Sound Bugfixing
+
+https://askubuntu.com/questions/8425/how-to-temporarily-disable-pulseaudio-while-running-a-game-under-wine
+
+
+    systemctl --user stop pulseaudio.socket
+    systemctl --user stop pulseaudio.service
+
+To start it again, you can use:
+
+    systemctl --user start pulseaudio.socket
+    systemctl --user start pulseaudio.service
+
 
 ## License
 
@@ -16,4 +30,4 @@ GNU Affero General Public License v3.0
 
 ## Copyright
 
-Copyright 2020 Marco Stahl
+Copyright 2020-2022 Marco Stahl

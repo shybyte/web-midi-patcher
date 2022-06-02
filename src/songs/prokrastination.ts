@@ -1,14 +1,14 @@
 import {BeatDurationTracker} from '../beat-duration-tracker';
 import {ControlForwarder} from '../effects/control-forwarder';
 import {harmony, Harmony, octaveUpSequence, repeatSequence, SequenceDrum} from '../effects/sequence-drum';
-import {MOD} from '../microkorg';
 import {MidiEvent} from '../midi-event';
 import {filterByNoteOn, filterNoteOnByPort} from '../midi-filter';
 import {MidiOut} from '../midi-out';
 import {EXPRESS_PEDAL, HAND_SONIC, MICRO_KORG, NTS, THROUGH_PORT, VMPK,} from '../midi-ports';
-import {A2, A4, B4, C3, C4, C5, CIS5, D3, D5, Dis3, E3, E4, E5, F3, F4, F5, G3, H4} from '../midi_notes';
+import {A2, A3, A4, B3, B4, C3, C4, C5, Cis3, D3, D4, D5, Dis3, E3, E5, F3, F4, F5, Fis3, G3, H3} from '../midi_notes';
 import {applyEffects, Patch, PatchProps} from '../patch';
 import {rangeMapper} from '../utils';
+import {MOD} from "../microkorg";
 
 // const DRUM_INPUT_DEVICE = VMPK;
 const OUT_DEVICE = THROUGH_PORT;
@@ -22,19 +22,29 @@ const NTS_CONTROLL = {
   OSC_ALT: 55,
 }
 
-// Cm, EsDur,
-export function sequenceDrums(props: PatchProps): Patch {
-  // const harmonies: Harmony[] = [
-  //   harmony(C5, repeatSequence(octaveUpSequence(C3), 4)),
-  //   harmony(D5, repeatSequence(octaveUpSequence(Dis3), 4)),
-  //   harmony(E5, repeatSequence(octaveUpSequence(F3), 4)),
-  // ];
+// Strophe
+// 4x F C g B
+
+// Pre-Chorus
+// 2x d a B a
+// d a B F C cis
+
+// Refrain
+// d B F g
+// B cis
+
+
+// C cis d F g a B
+export function prokrastination(props: PatchProps): Patch {
   const harmonies: Harmony[] = [
-    // harmony(C5, repeatSequence(octaveUpSequence(A2), 4), {69: [C3, E3]}),
-    harmony(C5, repeatSequence(octaveUpSequence(A2), 4), {52: [C4, E4]}),
-    harmony(D5, repeatSequence(octaveUpSequence(D3), 4), {52: [F4, A4]}),
-    harmony(E5, repeatSequence(octaveUpSequence(F3), 4), {52: [A4, C5]}),
-    harmony(F5, repeatSequence(octaveUpSequence(G3), 4), {52: [B4, D5]}),
+    harmony(66, repeatSequence(octaveUpSequence(C3, 1), 1)),
+    harmony(67, repeatSequence(octaveUpSequence(Cis3, 1), 1), {62: [F4], 65: [F4]}),
+    harmony(68, repeatSequence(octaveUpSequence(D3, 1), 1), {62: [F4], 65: [F4]}, A4),
+    harmony(69, repeatSequence(octaveUpSequence(F3, 1), 1), {62: [A4], 65: [A4]}, C4),
+    harmony(70, repeatSequence(octaveUpSequence(G3, 1), 1), {62: [B4], 65: [B4]}, B4),
+    harmony(71, repeatSequence(octaveUpSequence(A3, 1), 1)),
+    harmony(72, repeatSequence(octaveUpSequence(B3, 1), 1), {62: [F4], 65: [F4]}, D4),
+
   ];
 
   const defaultBeatDuration = 500;
@@ -48,7 +58,9 @@ export function sequenceDrums(props: PatchProps): Patch {
     drumInputDevice: DRUM_INPUT_DEVICE,
     outputDevice: OUT_DEVICE,
     harmonies,
-    harmonyNoteChannel: 1,
+    note_duration: 100,
+    harmonyNoteDuration: 200,
+    harmonyNoteChannel: 0,
     stepDuration: defaultBeatDuration / 4
   });
   const effects = [
@@ -59,9 +71,9 @@ export function sequenceDrums(props: PatchProps): Patch {
   ]
 
   return {
-    name: 'Sequence-Drums',
+    name: 'Prokrastination',
     midiProgram: 28, // a45
-    drumProgram: 110,
+    drumProgram: 112,
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       const midiMessage = midiEvent.message;
       console.log('midiEvent', midiEvent, midiMessage);

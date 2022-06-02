@@ -16,7 +16,7 @@ export class ControlForwarder implements Effect {
     if (midiEvent.comesFrom(this.inputPort) && midiEvent.message.type === 'ControlChange') {
       const mappedValue = this.mapper(midiEvent.message.value);
       console.log('forward control value', midiEvent, midiEvent.message.value, mappedValue, this.outputControl, this.outputPort);
-      midiOut.controlChange(this.outputPort, this.outputControl, mappedValue);
+      midiOut.controlChange(this.outputPort, this.outputControl, mappedValue, 1);
     }
   }
 }
