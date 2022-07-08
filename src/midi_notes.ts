@@ -14,6 +14,7 @@ export const E3 = 40;
 export const F3 = 41;
 export const Fis3 = 42;
 export const G3 = 43;
+export const Gis3 = 44;
 export const A3 = 45;
 export const B3 = 46;
 export const H3 = 47;
@@ -37,6 +38,7 @@ export const A5 = 69;
 export const B5 = 70;
 
 export const C6 = 72;
+export const D6 = 74;
 export const A6 = 81;
 export const C7 = 84;
 

@@ -6,9 +6,11 @@ import {Effect} from '../patch';
 export interface ControlSequenceStepperProps {
   trigger: MidiFilter;
   resetFilter: MidiFilter;
+  resetInstantly?: boolean;
   outputPortName: string;
   control: number,
   values: number[];
+  channel?: number;
 }
 
 export class ControlSequenceStepper implements Effect {
@@ -22,13 +24,22 @@ export class ControlSequenceStepper implements Effect {
 
     if (props.resetFilter(midiEvent)) {
       this.valueIndex = 0;
+      if (this.props.resetInstantly) {
+        this.sendCurrentValue(midiOut);
+      }
     }
 
     if (props.trigger(midiEvent)) {
-      const value = props.values[this.valueIndex];
-      console.log('Send Value!', value);
+      this.sendCurrentValue(midiOut);
       this.valueIndex = (this.valueIndex + 1) % props.values.length;
-      midiOut.controlChange(props.outputPortName, props.control, value);
     }
   }
+
+  sendCurrentValue(midiOut: MidiOut) {
+    const props = this.props;
+    const value = props.values[this.valueIndex];
+    console.log('Send Value!', value);
+    midiOut.controlChange(props.outputPortName, props.control, value, this.props.channel ?? 0);
+  }
+
 }

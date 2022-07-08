@@ -1,4 +1,6 @@
 import {MidiMessage, RawMidiMessage, U7} from './midi-message';
+import {MidiNote} from "./midi_notes";
+import {waitMs} from "./utils";
 
 type MIDIOutputMap = WebMidi.MIDIOutputMap;
 
@@ -27,6 +29,12 @@ export class MidiOut {
     this.send(portName, [0x80 + channel, note, velocity]);
   }
 
+  async playNoteAndNoteOff(outputPortName: string, note: MidiNote, durationMs: number, channel = 0) {
+    this.noteOn(outputPortName, note, 127, channel);
+    await waitMs(durationMs)
+    this.noteOff(outputPortName, note, 127, channel);
+  }
+
   public programChange(portName: string, programNumber: U7, channel = 0) {
     this.send(portName, [0xC0 + channel, programNumber]);
   }
@@ -41,9 +49,11 @@ export class MidiOut {
 
   public allSoundsOff() {
     for (const midiOutput of this.midiOutputs) {
-      this.controlChange(midiOutput.name!, 120, 0); // All Sounds off
-      this.controlChange(midiOutput.name!, 123, 0); // All Notes off
       console.log('allSoundsOff', midiOutput.name);
+      for (let channel = 0; channel < 5; channel++) {
+        this.controlChange(midiOutput.name!, 120, 0, channel); // All Sounds off
+        this.controlChange(midiOutput.name!, 123, 0, channel); // All Notes off
+      }
     }
   }
 }

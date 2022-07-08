@@ -14,10 +14,13 @@ export interface SequenceDrumProps {
   harmonyNoteChannel?: number;
 }
 
+const DRONE_CHANNEL = 1;
+
 export class SequenceDrum implements Effect {
   private currentSequencePlayer: NoteSequencePlayer | undefined;
   private currentHarmony?: Harmony;
   private currentHarmonyNoteIndex = 0;
+  private currentDroneNote: number | undefined = undefined;
 
   constructor(private props: SequenceDrumProps) {
   }
@@ -58,11 +61,27 @@ export class SequenceDrum implements Effect {
         this.currentHarmonyNoteIndex += 1
       }
 
-      const droneNote = this.currentHarmony?.droneNote;
-      if (droneNote) {
-        playNoteAndNoteOff(midiOut, this.props.outputDevice, droneNote, 1000, 1)
+      const droneNote = harmony?.droneNote;
+      if (droneNote && droneNote !== this.currentDroneNote) {
+        if (this.currentDroneNote) {
+          this.stopDrone(midiOut);
+        }
+        midiOut.noteOn(this.props.outputDevice, droneNote, 127, DRONE_CHANNEL);
+        this.currentDroneNote = droneNote;
       }
 
+      if (harmony && !droneNote && this.currentDroneNote) {
+        this.stopDrone(midiOut);
+      }
+
+
+    }
+  }
+
+  stopDrone(midiOut: MidiOut) {
+    if (this.currentDroneNote) {
+      midiOut.noteOff(this.props.outputDevice, this.currentDroneNote, 127, DRONE_CHANNEL);
+      this.currentDroneNote = undefined;
     }
   }
 }
@@ -91,7 +110,7 @@ export function harmony(
   baseSequence: MidiNote[],
   harmonyNotesByTriggerNode: Dictionary<number, MidiNote[]> = {},
   droneNote?: MidiNote,
-  ): Harmony {
+): Harmony {
   return {
     triggerNote, baseSequence, harmonyNotesByTriggerNode, droneNote
   }

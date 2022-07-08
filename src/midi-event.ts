@@ -9,6 +9,6 @@ export class MidiEvent {
   }
 
   comesFrom(...portNameParts: string[]) {
-    return  portNameParts.some(it => this.portName.includes(it));
+    return portNameParts.some(it => this.portName.includes(it));
   }
 }

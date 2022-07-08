@@ -17,6 +17,8 @@ import {wahrheit} from './songs/wahrheit';
 import {young} from './songs/young';
 import {connectControls, renderInitialView, renderPatchSelection, switchPatchPage, View} from './view';
 import {prokrastination} from "./songs/prokrastination";
+import {diktatorSolo} from "./songs/diktator-solo";
+import {wahrheitSolo} from "./songs/wahrheit-solo";
 
 type MIDIMessageEvent = WebMidi.MIDIMessageEvent;
 
@@ -35,7 +37,10 @@ async function start() {
     view.setCurrentPatchDisplay(html);
   }
 
-  const patchFactories = [prokrastination, soAltWieIch, sequenceDrums, pedalBaseNote, jam, test, young, wahrheit, system, diktator, liebtUns, endzeit];
+  const patchFactories = [
+    wahrheitSolo, diktatorSolo, prokrastination, soAltWieIch, sequenceDrums,
+    pedalBaseNote, jam, test, young, wahrheit, system, diktator, liebtUns, endzeit
+  ];
   // const patchFactories = [jam];
   let patches = patchFactories.map((it) => it({setStatusDisplayHtml}));
   let currentPatch: Patch = patches[0];
