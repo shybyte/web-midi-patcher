@@ -7,3 +7,4 @@ export const HAND_SONIC = 'HPD-20 MIDI 1';
 export const MICRO_KORG = 'USB';
 export const NTS = 'NTS';
 export const YAMAHA_PSS_A50 = 'Digital Keyboard MIDI 1';
+export const MICRO_KEY = 'microKEY';

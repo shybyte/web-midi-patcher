@@ -114,3 +114,7 @@ export const MidiMessage = {
 }
 
 export type RawMidiMessage = [number, number] | [number, number, number] | Uint8Array;
+
+export function isRealNoteOn(midiMessage: MidiMessage): midiMessage is NoteOn {
+  return midiMessage.type === 'NoteOn' && midiMessage.velocity > 0;
+}

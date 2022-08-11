@@ -17,6 +17,14 @@ export function filterByNoteOn(portName: string, note: number): MidiFilter {
     midiEvent.message.note === note;
 }
 
+export function filterByRealNoteOn(portName: string, note: number): MidiFilter {
+  return (midiEvent) =>
+    midiEvent.comesFrom(portName) &&
+    midiEvent.message.type === 'NoteOn' &&
+    midiEvent.message.velocity > 0 &&
+    midiEvent.message.note === note;
+}
+
 export function filterByNoteOff(portName: string, note: number): MidiFilter {
   return (midiEvent) =>
     midiEvent.comesFrom(portName) &&
