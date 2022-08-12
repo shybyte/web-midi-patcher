@@ -24,6 +24,7 @@ export class MidiSequenceDrum implements Effect {
   private currentHarmony?: MidiSequenceDrumHarmony;
   private currentHarmonyNoteIndex = 0;
   private currentDroneNote: number | undefined = undefined;
+  private baseSequenceIndex = 0;
 
   constructor(private props: MidiSequenceDrumProps) {
   }
@@ -51,12 +52,22 @@ export class MidiSequenceDrum implements Effect {
           this.currentSequencePlayer.stop(midiOut);
         }
 
+        if (this.currentHarmony !== harmony) {
+          this.baseSequenceIndex = 0;
+        } else {
+          this.baseSequenceIndex += 1;
+        }
+
         this.currentHarmony = harmony;
 
         console.log('harmony.baseSequence', harmony.baseSequence, 'tickDuration', this.props.tickDuration);
 
+        const baseSequence: MidiSequenceStep[] = 'sequences' in harmony.baseSequence ?
+          harmony.baseSequence.sequences[this.baseSequenceIndex % harmony.baseSequence.sequences.length]
+          : harmony.baseSequence;
+
         this.currentSequencePlayer = new MidiSequencePlayer({
-          notes: harmony.baseSequence,
+          notes: baseSequence,
           tickDurationMs: this.props.tickDuration,
           outputPortName: this.props.outputDevice
         });
@@ -103,7 +114,7 @@ async function playNoteAndNoteOff(midiOut: MidiOut, outputPortName: string, note
 
 export function msHarmony(
   triggerNote: MidiNote,
-  baseSequence: MidiSequenceStep[],
+  baseSequence: MidiSequenceStep[] | MultiSequence,
   harmonyNotesByTriggerNode: Dictionary<number, MidiNote[]> = {},
   droneNote?: MidiNote,
 ): MidiSequenceDrumHarmony {
@@ -114,9 +125,14 @@ export function msHarmony(
 
 export interface MidiSequenceDrumHarmony {
   triggerNote: MidiNote;
-  baseSequence: MidiSequenceStep[];
+  baseSequence: MidiSequenceStep[] | MultiSequence;
   droneNote?: MidiNote;
   harmonyNotesByTriggerNode: Dictionary<number, MidiNote[]>
+}
+
+
+interface MultiSequence {
+  sequences: MidiSequenceStep[][];
 }
 
 

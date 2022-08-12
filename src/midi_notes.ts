@@ -20,24 +20,31 @@ export const B3 = 46;
 export const H3 = 47;
 
 export const C4 = 48;
+export const Cis4 = 49;
 export const D4 = 50;
 export const E4 = 52;
 export const F4 = 53;
+export const Fis4 = 54;
 export const G4 = 55;
+export const Gis4 = 56;
 export const A4 = 57;
 export const B4 = 58;
 export const H4 = 58;
 
 export const C5 = 60;
-export const CIS5 = 61;
+export const Cis5 = 61;
 export const D5 = 62;
 export const E5 = 64;
 export const F5 = 65;
+export const Fis5 = 66;
 export const G5 = 67;
+export const Gis5 = 68;
 export const A5 = 69;
 export const B5 = 70;
+export const H5 = 71;
 
 export const C6 = 72;
+export const Cis6 = 73;
 export const D6 = 74;
 export const A6 = 81;
 export const C7 = 84;

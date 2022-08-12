@@ -20,6 +20,7 @@ import {prokrastination} from "./songs/prokrastination";
 import {diktatorSolo} from "./songs/diktator-solo";
 import {wahrheitSolo} from "./songs/wahrheit-solo";
 import {midiSequenceDrumTest} from "./songs/midi-sequence-drum-test";
+import {sicherheitskopie} from "./songs/sicherheitskopie";
 
 type MIDIMessageEvent = WebMidi.MIDIMessageEvent;
 
@@ -39,6 +40,7 @@ async function start() {
   }
 
   const patchFactories = [
+    sicherheitskopie,
     midiSequenceDrumTest,
     wahrheitSolo, diktatorSolo, prokrastination, soAltWieIch, sequenceDrums,
     pedalBaseNote, jam, test, young, wahrheit, system, diktator, liebtUns, endzeit
