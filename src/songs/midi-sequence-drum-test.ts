@@ -33,7 +33,7 @@ import {applyEffects, Patch, PatchProps} from '../patch';
 import {rangeMapper} from '../utils';
 import {MOD, OSC2_SEMITONE} from "../microkorg";
 import {ControlSequenceStepper} from "../effects/control-sequence-stepper";
-import {MidiSequenceDrum, MidiSequenceDrumHarmony, msHarmony} from "../effects/midi-sequence-drum";
+import {MidiSequenceDrum, MidiSequenceDrumHarmony, msHarmony, MultiSequence} from "../effects/midi-sequence-drum";
 import {isRealNoteOn} from "../midi-message";
 import {NoteForwarder} from "../effects/note-forwarder";
 import {KEYBOARD_IN} from "../config";
@@ -54,18 +54,19 @@ export function midiSequenceDrumTest(props: PatchProps): Patch {
   });
 
 
-  const harmonies: MidiSequenceDrumHarmony[] = [
-    msHarmony(A4, [
-      {type: 'NoteOn', note: A3, channel: 0, velocity: 100},
-      {ticks: 1},
-      {type: 'NoteOff', note: A3, channel: 0, velocity: 100},
-      {type: 'NoteOn', note: E4, channel: 0, velocity: 100},
-      {type: 'NoteOn', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
-      {type: 'NoteOff', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
-      {ticks: 1},
-      {type: 'NoteOff', note: E4, channel: 0, velocity: 100}
+  const a4MultiSequence: MultiSequence = {sequences: [[
+    {type: 'NoteOn', note: A3, channel: 0, velocity: 100},
+    {ticks: 1},
+    {type: 'NoteOff', note: A3, channel: 0, velocity: 100},
+    {type: 'NoteOn', note: E4, channel: 0, velocity: 100},
+    {type: 'NoteOn', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
+    {type: 'NoteOff', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
+    {ticks: 1},
+    {type: 'NoteOff', note: E4, channel: 0, velocity: 100}
+  ]]};
 
-    ]),
+  const harmonies: MidiSequenceDrumHarmony[] = [
+    msHarmony(A4, a4MultiSequence),
     msHarmony(F4, [
       {type: 'NoteOn', note: F3, channel: 0, velocity: 100},
       {ticks: 1},

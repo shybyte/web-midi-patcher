@@ -20,11 +20,10 @@ export interface MidiSequenceDrumProps {
 const DRONE_CHANNEL = 1;
 
 export class MidiSequenceDrum implements Effect {
-  private currentSequencePlayer: MidiSequencePlayer | undefined;
+  private currentSequencePlayer: MultiMidiSequencePlayer | undefined;
   private currentHarmony?: MidiSequenceDrumHarmony;
   private currentHarmonyNoteIndex = 0;
   private currentDroneNote: number | undefined = undefined;
-  private baseSequenceIndex = 0;
 
   constructor(private props: MidiSequenceDrumProps) {
   }
@@ -48,30 +47,19 @@ export class MidiSequenceDrum implements Effect {
         ? this.props.harmonies.find(it => it.triggerNote === midiMessage.note)
         : this.currentHarmony;
       if (harmony) {
-        if (this.currentSequencePlayer) {
-          this.currentSequencePlayer.stop(midiOut);
-        }
+        console.log('harmony.baseSequence', harmony.baseSequence, 'tickDuration', this.props.tickDuration);
 
         if (this.currentHarmony !== harmony) {
-          this.baseSequenceIndex = 0;
-        } else {
-          this.baseSequenceIndex += 1;
+          this.currentSequencePlayer = new MultiMidiSequencePlayer({
+            notes: 'sequences' in harmony.baseSequence ? harmony.baseSequence : {sequences: [harmony.baseSequence]},
+            tickDurationMs: this.props.tickDuration,
+            outputPortName: this.props.outputDevice
+          });
         }
 
         this.currentHarmony = harmony;
+        this.currentSequencePlayer!.start(midiOut);
 
-        console.log('harmony.baseSequence', harmony.baseSequence, 'tickDuration', this.props.tickDuration);
-
-        const baseSequence: MidiSequenceStep[] = 'sequences' in harmony.baseSequence ?
-          harmony.baseSequence.sequences[this.baseSequenceIndex % harmony.baseSequence.sequences.length]
-          : harmony.baseSequence;
-
-        this.currentSequencePlayer = new MidiSequencePlayer({
-          notes: baseSequence,
-          tickDurationMs: this.props.tickDuration,
-          outputPortName: this.props.outputDevice
-        });
-        this.currentSequencePlayer.start(midiOut);
       }
 
       const harmonyNotes = this.currentHarmony && this.currentHarmony.harmonyNotesByTriggerNode[midiMessage.note];
@@ -114,7 +102,7 @@ async function playNoteAndNoteOff(midiOut: MidiOut, outputPortName: string, note
 
 export function msHarmony(
   triggerNote: MidiNote,
-  baseSequence: MidiSequenceStep[] | MultiSequence,
+  baseSequence: MidiSequence,
   harmonyNotesByTriggerNode: Dictionary<number, MidiNote[]> = {},
   droneNote?: MidiNote,
 ): MidiSequenceDrumHarmony {
@@ -131,23 +119,64 @@ export interface MidiSequenceDrumHarmony {
 }
 
 
-interface MultiSequence {
+type MidiSequence = MidiSequenceStep[] | MultiSequence;
+
+export interface MultiSequence {
   sequences: MidiSequenceStep[][];
 }
 
 
-export interface NoteSequencePlayerProps {
+interface MultiMidiSequencePlayerProps {
+  notes: MultiSequence;
+  outputPortName: string;
+  tickDurationMs: number;
+}
+
+class MultiMidiSequencePlayer {
+  private currentSequencePlayer: SingleMidiSequencePlayer | undefined;
+  private baseSequenceIndex = 0;
+
+  constructor(private props: MultiMidiSequencePlayerProps) {
+  }
+
+  async start(midiOut: MidiOut): Promise<void> {
+    if (this.currentSequencePlayer) {
+      this.currentSequencePlayer.stop(midiOut);
+    }
+
+    const baseSequence: MidiSequenceStep[] = this.props.notes.sequences[this.baseSequenceIndex % this.props.notes.sequences.length];
+
+    this.currentSequencePlayer = new SingleMidiSequencePlayer({
+      notes: baseSequence,
+      tickDurationMs: this.props.tickDurationMs,
+      outputPortName: this.props.outputPortName
+    });
+    this.currentSequencePlayer.start(midiOut);
+
+    this.baseSequenceIndex += 1;
+  }
+
+  stop(midiOut: MidiOut): void {
+    if (this.currentSequencePlayer) {
+      this.currentSequencePlayer.stop(midiOut);
+    }
+  }
+
+}
+
+
+export interface SingleMidiSequencePlayerProps {
   notes: MidiSequenceStep[];
   outputPortName: string;
   tickDurationMs: number;
 }
 
-class MidiSequencePlayer {
+class SingleMidiSequencePlayer {
   private noteIndex = 0;
   private stopped = false;
   private startedNotes: Map<String, NoteOn> = new Map();
 
-  constructor(private props: NoteSequencePlayerProps) {
+  constructor(private props: SingleMidiSequencePlayerProps) {
   }
 
   async start(midiOut: MidiOut) {
