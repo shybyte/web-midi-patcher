@@ -103,14 +103,12 @@ export function midiSequenceDrumTest(props: PatchProps): Patch {
   ];
 
   const sequenceDrum = new MidiSequenceDrum({
+    harmonyNoteTriggerDevice: DRUM_INPUT_DEVICE,
     triggerFilter: (midiEvent: MidiEvent) => midiEvent.comesFrom(KEYBOARD_IN),
     lastHarmonyTriggerFilter: (midiEvent: MidiEvent) =>
       midiEvent.comesFrom(HAND_SONIC) && isRealNoteOn(midiEvent.message) && midiEvent.message.note === 74,
     outputDevice: OUT_DEVICE,
     harmonies,
-    note_duration: 100,
-    harmonyNoteDuration: 200,
-    harmonyNoteChannel: 0,
     tickDuration: defaultBeatDuration / 2,
   });
 

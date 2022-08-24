@@ -30,10 +30,16 @@ import {
   H3, H5, MidiNote
 } from '../midi_notes';
 import {applyEffects, Patch, PatchProps} from '../patch';
-import {rangeMapper} from '../utils';
+import {Dictionary, rangeMapper} from '../utils';
 import {MOD, OSC2_SEMITONE} from "../microkorg";
 import {ControlSequenceStepper} from "../effects/control-sequence-stepper";
-import {MidiSequenceDrum, MidiSequenceDrumHarmony, MidiSequenceStep, msHarmony} from "../effects/midi-sequence-drum";
+import {
+  MidiSequence,
+  MidiSequenceDrum,
+  MidiSequenceDrumHarmony,
+  MidiSequenceStep,
+  msHarmony
+} from "../effects/midi-sequence-drum";
 import {isRealNoteOn, isRealNoteOnBelow, isRealNoteOnNote} from "../midi-message";
 import {NoteForwarder} from "../effects/note-forwarder";
 import {KEYBOARD_IN} from "../config";
@@ -98,15 +104,23 @@ export function sicherheitskopie(props: PatchProps): Patch {
     ]
   }
 
+  function harmonyChord(notes: MidiNote[]): MidiSequence  {
+    return [
+      ...notes.map((note): MidiSequenceStep => ({type: 'NoteOn', note: note, channel: 1, velocity: 100})),
+      {ticks: 0.8},
+      ...notes.map((note): MidiSequenceStep => ({type: 'NoteOff', note: note, channel: 1, velocity: 100})),
+    ]
+  }
+
   const harmonies: MidiSequenceDrumHarmony[] = [
-    msHarmony(66, {sequences: [bassNoteSeq(C4), bassNoteSeq(G4)]}, {62: [E5, G5]}),
-    msHarmony(67, {sequences: [bassNoteSeq(Cis4), bassNoteSeq(Gis4)]}, {62: [F5, Gis5]}),
-    msHarmony(68, {sequences: [bassNoteSeq(D4), bassNoteSeq(A4)]}, {62: [Fis5, A5]}),
+    msHarmony(66, {sequences: [bassNoteSeq(C4), bassNoteSeq(G4)]}, {62: harmonyChord([E5, G5])}),
+    msHarmony(67, {sequences: [bassNoteSeq(Cis4), bassNoteSeq(Gis4)]}, {62: harmonyChord([F5, Gis5])}),
+    msHarmony(68, {sequences: [bassNoteSeq(D4), bassNoteSeq(A4)]}, {62: harmonyChord([Fis5, A5])}),
     //
-    msHarmony(69, {sequences: [bassNoteSeq(E4), bassNoteSeq(H3)]}, {62: [G5, H5]}),
-    msHarmony(70, {sequences: [bassNoteSeq(E4), bassNoteSeq(H3)]}, {62: [Gis5, H5]}),
-    msHarmony(71, {sequences: [bassNoteSeq(Fis4), bassNoteSeq(Cis5)]}, {62: [A5, Cis6]}),
-    msHarmony(72, {sequences: [bassNoteSeq(H3), bassNoteSeq(Fis4)]}, {62: [D5, Fis5]}),
+    msHarmony(69, {sequences: [bassNoteSeq(E4), bassNoteSeq(H3)]}, {62: harmonyChord([G5, H5])}),
+    msHarmony(70, {sequences: [bassNoteSeq(E4), bassNoteSeq(H3)]}, {62: harmonyChord([Gis5, H5])}),
+    msHarmony(71, {sequences: [bassNoteSeq(Fis4), bassNoteSeq(Cis5)]}, {62: harmonyChord([A5, Cis6])}),
+    msHarmony(72, {sequences: [bassNoteSeq(H3), bassNoteSeq(Fis4)]}, {62: harmonyChord([D5, Fis5])}),
     // Keyboard
     msHarmony(
       (event) => isRealNoteOnNote(event.message, E4) && event.comesFrom(KEYBOARD_IN),
@@ -123,14 +137,12 @@ export function sicherheitskopie(props: PatchProps): Patch {
   ];
 
   const sequenceDrum = new MidiSequenceDrum({
+    harmonyNoteTriggerDevice: DRUM_INPUT_DEVICE,
     triggerFilter: (midiEvent: MidiEvent) => midiEvent.comesFrom(DRUM_INPUT_DEVICE) || (midiEvent.comesFrom(KEYBOARD_IN) && isRealNoteOnBelow(midiEvent.message, C5)),
     lastHarmonyTriggerFilter: (midiEvent: MidiEvent) =>
       midiEvent.comesFrom(DRUM_INPUT_DEVICE) && isRealNoteOn(midiEvent.message) && midiEvent.message.note === 74,
     outputDevice: OUT_DEVICE,
     harmonies,
-    note_duration: 100,
-    harmonyNoteDuration: 500,
-    harmonyNoteChannel: 1,
     tickDuration: defaultBeatDuration / 2,
   });
 

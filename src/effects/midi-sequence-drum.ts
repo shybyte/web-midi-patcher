@@ -9,20 +9,20 @@ import {MidiFilter} from "../midi-filter";
 export interface MidiSequenceDrumProps {
   outputDevice: string;
   triggerFilter: MidiFilter;
+  harmonyNoteTriggerDevice: string;
   lastHarmonyTriggerFilter?: MidiFilter;
   harmonies: MidiSequenceDrumHarmony[];
   tickDuration: number;
-  note_duration?: number;
-  harmonyNoteDuration?: number;
-  harmonyNoteChannel?: number;
 }
 
 const DRONE_CHANNEL = 1;
 
 export class MidiSequenceDrum implements Effect {
   private currentSequencePlayer: MultiMidiSequencePlayer | undefined;
+  lastTriggeredTime: number = 0;
   private currentHarmony?: MidiSequenceDrumHarmony;
-  private currentHarmonyNoteIndex = 0;
+  private currentHarmonyNoteSequence: MidiSequence | undefined;
+  private harmonyNoteSequencePlayer: MultiMidiSequencePlayer | undefined;
   private currentDroneNote: number | undefined = undefined;
 
   constructor(private props: MidiSequenceDrumProps) {
@@ -40,15 +40,16 @@ export class MidiSequenceDrum implements Effect {
     ) {
       console.log('triggerNote', midiNoteToString(midiMessage.note));
 
-      const harmony = lastHarmonyTriggered
+      const harmony = lastHarmonyTriggered && (Date.now() - this.lastTriggeredTime > 100)
         ? this.currentHarmony
         : this.props.harmonies.find(it =>
           typeof it.harmonyTrigger === 'number'
             ? it.harmonyTrigger === midiMessage.note
             : it.harmonyTrigger(midiEvent)
-        )
+        );
 
       if (harmony) {
+        this.lastTriggeredTime = Date.now();
         console.log('harmony.baseSequence', harmony.baseSequence, 'tickDuration', this.props.tickDuration);
 
         if (this.currentHarmony !== harmony) {
@@ -64,13 +65,6 @@ export class MidiSequenceDrum implements Effect {
 
       }
 
-      const harmonyNotes = this.currentHarmony && this.currentHarmony.harmonyNotesByTriggerNode[midiMessage.note];
-      if (harmonyNotes) {
-        const harmonyNote = harmonyNotes[this.currentHarmonyNoteIndex % harmonyNotes.length];
-        playNoteAndNoteOff(midiOut, this.props.outputDevice, harmonyNote, this.props.harmonyNoteDuration ?? 200, this.props.harmonyNoteChannel ?? 0);
-        this.currentHarmonyNoteIndex += 1
-      }
-
       const droneNote = harmony?.droneNote;
       if (droneNote && droneNote !== this.currentDroneNote) {
         if (this.currentDroneNote) {
@@ -83,8 +77,21 @@ export class MidiSequenceDrum implements Effect {
       if (harmony && !droneNote && this.currentDroneNote) {
         this.stopDrone(midiOut);
       }
+    }
 
-
+    if (midiEvent.comesFrom(this.props.harmonyNoteTriggerDevice) && isRealNoteOn(midiMessage)) {
+      const harmonyNotes = this.currentHarmony && this.currentHarmony.harmonyNotesByTriggerNode[midiMessage.note];
+      if (harmonyNotes) {
+        if (this.currentHarmonyNoteSequence !== harmonyNotes) {
+          this.currentHarmonyNoteSequence = harmonyNotes;
+          this.harmonyNoteSequencePlayer = new MultiMidiSequencePlayer({
+            notes: 'sequences' in harmonyNotes ? harmonyNotes : {sequences: [harmonyNotes]},
+            tickDurationMs: this.props.tickDuration,
+            outputPortName: this.props.outputDevice
+          })
+        }
+        this.harmonyNoteSequencePlayer?.start(midiOut);
+      }
     }
   }
 
@@ -105,7 +112,7 @@ async function playNoteAndNoteOff(midiOut: MidiOut, outputPortName: string, note
 export function msHarmony(
   harmonyTrigger: HarmonyTrigger,
   baseSequence: MidiSequence,
-  harmonyNotesByTriggerNode: Dictionary<number, MidiNote[]> = {},
+  harmonyNotesByTriggerNode: Dictionary<number, MidiSequence> = {},
   droneNote?: MidiNote,
 ): MidiSequenceDrumHarmony {
   return {
@@ -118,13 +125,13 @@ export type HarmonyTrigger = MidiNote | MidiFilter;
 
 export interface MidiSequenceDrumHarmony {
   harmonyTrigger: HarmonyTrigger;
-  baseSequence: MidiSequenceStep[] | MultiSequence;
+  baseSequence: MidiSequence;
   droneNote?: MidiNote;
-  harmonyNotesByTriggerNode: Dictionary<number, MidiNote[]>
+  harmonyNotesByTriggerNode: Dictionary<number, MidiSequence>
 }
 
 
-type MidiSequence = MidiSequenceStep[] | MultiSequence;
+export type MidiSequence = MidiSequenceStep[] | MultiSequence;
 
 export interface MultiSequence {
   sequences: MidiSequenceStep[][];
