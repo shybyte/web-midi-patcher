@@ -1,3 +1,5 @@
+import {MidiNote} from "./midi_notes";
+
 type Channel = number;
 export type U7 = number;
 export type U14 = number;
@@ -104,7 +106,7 @@ export const MidiMessage = {
       case 'ControlChange':
         return [0xB0 + midiMessage.channel, midiMessage.control, midiMessage.value];
       case 'PitchBend':
-        return [0xE0 + midiMessage.channel, midiMessage.value && 0xff, midiMessage.value >> 8];
+        return [0xE0 + midiMessage.channel, midiMessage.value && 127, midiMessage.value >> 7];
       case 'ProgramChange':
         return [0xC0 + midiMessage.channel, midiMessage.number];
       case 'Unknown':
@@ -117,4 +119,12 @@ export type RawMidiMessage = [number, number] | [number, number, number] | Uint8
 
 export function isRealNoteOn(midiMessage: MidiMessage): midiMessage is NoteOn {
   return midiMessage.type === 'NoteOn' && midiMessage.velocity > 0;
+}
+
+export function isRealNoteOnNote(midiMessage: MidiMessage, note: MidiNote): midiMessage is NoteOn {
+  return midiMessage.type === 'NoteOn' && midiMessage.velocity > 0 && midiMessage.note === note;
+}
+
+export function isRealNoteOnBelow(midiMessage: MidiMessage, note: MidiNote): midiMessage is NoteOn {
+  return midiMessage.type === 'NoteOn' && midiMessage.velocity > 0 && midiMessage.note < note;
 }

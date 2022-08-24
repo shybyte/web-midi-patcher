@@ -35,17 +35,19 @@ export class MidiSequenceDrum implements Effect {
   onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
     const midiMessage = midiEvent.message;
     // console.log('midiEvent', midiEvent, midiMessage);
-    if (isRealNoteOn(midiMessage) &&
-      (
-        this.props.triggerFilter(midiEvent) ||
-        this.props.lastHarmonyTriggerFilter && this.props.lastHarmonyTriggerFilter(midiEvent)
-      )
+    const lastHarmonyTriggered = this.props.lastHarmonyTriggerFilter && this.props.lastHarmonyTriggerFilter(midiEvent);
+    if (isRealNoteOn(midiMessage) && (this.props.triggerFilter(midiEvent) || lastHarmonyTriggered)
     ) {
       console.log('triggerNote', midiNoteToString(midiMessage.note));
 
-      const harmony = this.props.triggerFilter(midiEvent)
-        ? this.props.harmonies.find(it => it.triggerNote === midiMessage.note)
-        : this.currentHarmony;
+      const harmony = lastHarmonyTriggered
+        ? this.currentHarmony
+        : this.props.harmonies.find(it =>
+          typeof it.harmonyTrigger === 'number'
+            ? it.harmonyTrigger === midiMessage.note
+            : it.harmonyTrigger(midiEvent)
+        )
+
       if (harmony) {
         console.log('harmony.baseSequence', harmony.baseSequence, 'tickDuration', this.props.tickDuration);
 
@@ -101,18 +103,21 @@ async function playNoteAndNoteOff(midiOut: MidiOut, outputPortName: string, note
 }
 
 export function msHarmony(
-  triggerNote: MidiNote,
+  harmonyTrigger: HarmonyTrigger,
   baseSequence: MidiSequence,
   harmonyNotesByTriggerNode: Dictionary<number, MidiNote[]> = {},
   droneNote?: MidiNote,
 ): MidiSequenceDrumHarmony {
   return {
-    triggerNote, baseSequence, harmonyNotesByTriggerNode, droneNote
+    harmonyTrigger: harmonyTrigger, baseSequence, harmonyNotesByTriggerNode, droneNote
   }
 }
 
+
+export type HarmonyTrigger = MidiNote | MidiFilter;
+
 export interface MidiSequenceDrumHarmony {
-  triggerNote: MidiNote;
+  harmonyTrigger: HarmonyTrigger;
   baseSequence: MidiSequenceStep[] | MultiSequence;
   droneNote?: MidiNote;
   harmonyNotesByTriggerNode: Dictionary<number, MidiNote[]>
