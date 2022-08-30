@@ -15,15 +15,13 @@ export interface MidiSequenceDrumProps {
   tickDuration: number;
 }
 
-const DRONE_CHANNEL = 1;
-
 export class MidiSequenceDrum implements Effect {
   private currentSequencePlayer: MultiMidiSequencePlayer | undefined;
   lastTriggeredTime: number = 0;
   private currentHarmony?: MidiSequenceDrumHarmony;
   private currentHarmonyNoteSequence: MidiSequence | undefined;
   private harmonyNoteSequencePlayer: MultiMidiSequencePlayer | undefined;
-  private currentDroneNote: number | undefined = undefined;
+  private currentDronePlayer: MultiMidiSequencePlayer | undefined;
 
   constructor(private props: MidiSequenceDrumProps) {
   }
@@ -58,24 +56,23 @@ export class MidiSequenceDrum implements Effect {
             tickDurationMs: this.props.tickDuration,
             outputPortName: this.props.outputDevice
           });
+
+          this.currentDronePlayer?.stop(midiOut);
+          const droneSequence = harmony?.droneSequence;
+          if (droneSequence) {
+            this.currentDronePlayer = new MultiMidiSequencePlayer({
+              notes: 'sequences' in droneSequence ? droneSequence : {sequences: [droneSequence]},
+              tickDurationMs: this.props.tickDuration,
+              outputPortName: this.props.outputDevice
+            });
+            this.currentDronePlayer.start(midiOut);
+          } else {
+            this.currentDronePlayer = undefined;
+          }
         }
 
         this.currentHarmony = harmony;
         this.currentSequencePlayer!.start(midiOut);
-
-      }
-
-      const droneNote = harmony?.droneNote;
-      if (droneNote && droneNote !== this.currentDroneNote) {
-        if (this.currentDroneNote) {
-          this.stopDrone(midiOut);
-        }
-        midiOut.noteOn(this.props.outputDevice, droneNote, 127, DRONE_CHANNEL);
-        this.currentDroneNote = droneNote;
-      }
-
-      if (harmony && !droneNote && this.currentDroneNote) {
-        this.stopDrone(midiOut);
       }
     }
 
@@ -94,29 +91,16 @@ export class MidiSequenceDrum implements Effect {
       }
     }
   }
-
-  stopDrone(midiOut: MidiOut) {
-    if (this.currentDroneNote) {
-      midiOut.noteOff(this.props.outputDevice, this.currentDroneNote, 127, DRONE_CHANNEL);
-      this.currentDroneNote = undefined;
-    }
-  }
-}
-
-async function playNoteAndNoteOff(midiOut: MidiOut, outputPortName: string, note: MidiNote, durationMs: number, channel = 0) {
-  midiOut.noteOn(outputPortName, note, 127, channel);
-  await waitMs(durationMs)
-  midiOut.noteOff(outputPortName, note, 127, channel);
 }
 
 export function msHarmony(
   harmonyTrigger: HarmonyTrigger,
   baseSequence: MidiSequence,
   harmonyNotesByTriggerNode: Dictionary<number, MidiSequence> = {},
-  droneNote?: MidiNote,
+  droneSequence?: MidiSequence,
 ): MidiSequenceDrumHarmony {
   return {
-    harmonyTrigger: harmonyTrigger, baseSequence, harmonyNotesByTriggerNode, droneNote
+    harmonyTrigger: harmonyTrigger, baseSequence, harmonyNotesByTriggerNode, droneSequence
   }
 }
 
@@ -126,7 +110,7 @@ export type HarmonyTrigger = MidiNote | MidiFilter;
 export interface MidiSequenceDrumHarmony {
   harmonyTrigger: HarmonyTrigger;
   baseSequence: MidiSequence;
-  droneNote?: MidiNote;
+  droneSequence?: MidiSequence;
   harmonyNotesByTriggerNode: Dictionary<number, MidiSequence>
 }
 

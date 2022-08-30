@@ -104,7 +104,7 @@ export function sicherheitskopie(props: PatchProps): Patch {
     ]
   }
 
-  function harmonyChord(notes: MidiNote[]): MidiSequence  {
+  function harmonyChord(notes: MidiNote[]): MidiSequence {
     return [
       ...notes.map((note): MidiSequenceStep => ({type: 'NoteOn', note: note, channel: 1, velocity: 100})),
       {ticks: 0.8},
@@ -112,12 +112,18 @@ export function sicherheitskopie(props: PatchProps): Patch {
     ]
   }
 
+  function droneSeq(note: MidiNote): MidiSequence {
+    return [
+      {type: 'NoteOn', note: note, channel: 3, velocity: 100},
+    ];
+  }
+
   const harmonies: MidiSequenceDrumHarmony[] = [
-    msHarmony(66, {sequences: [bassNoteSeq(C4), bassNoteSeq(G4)]}, {62: harmonyChord([E5, G5])}),
+    msHarmony(66, {sequences: [bassNoteSeq(C4), bassNoteSeq(G4)]}, {62: harmonyChord([E5, G5])}, droneSeq(E4)),
     msHarmony(67, {sequences: [bassNoteSeq(Cis4), bassNoteSeq(Gis4)]}, {62: harmonyChord([F5, Gis5])}),
-    msHarmony(68, {sequences: [bassNoteSeq(D4), bassNoteSeq(A4)]}, {62: harmonyChord([Fis5, A5])}),
+    msHarmony(68, {sequences: [bassNoteSeq(D4), bassNoteSeq(A4)]}, {62: harmonyChord([Fis5, A5])}, droneSeq(Fis4)),
     //
-    msHarmony(69, {sequences: [bassNoteSeq(E4), bassNoteSeq(H3)]}, {62: harmonyChord([G5, H5])}),
+    msHarmony(69, {sequences: [bassNoteSeq(E4), bassNoteSeq(H3)]}, {62: harmonyChord([G5, H5])}, droneSeq(G3)),
     msHarmony(70, {sequences: [bassNoteSeq(E4), bassNoteSeq(H3)]}, {62: harmonyChord([Gis5, H5])}),
     msHarmony(71, {sequences: [bassNoteSeq(Fis4), bassNoteSeq(Cis5)]}, {62: harmonyChord([A5, Cis6])}),
     msHarmony(72, {sequences: [bassNoteSeq(H3), bassNoteSeq(Fis4)]}, {62: harmonyChord([D5, Fis5])}),
