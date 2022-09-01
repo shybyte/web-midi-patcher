@@ -174,7 +174,6 @@ export function sicherheitskopie(props: PatchProps): Patch {
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       const midiMessage = midiEvent.message;
       beatTracker.onMidiEvent(midiEvent);
-      console.log('midiEvent', midiEvent, midiMessage);
       sequenceDrum.tickDuration = beatTracker.beatDuration / 2;
       applyEffects(midiEvent, midiOut, effects);
     }

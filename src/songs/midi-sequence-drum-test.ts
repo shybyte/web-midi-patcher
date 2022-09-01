@@ -25,18 +25,25 @@ import {
   F4,
   F5,
   Fis3,
-  G3, G4,
-  Gis3,
-  H3
+  G3, G4, G5,
+  Gis3, Gis4,
+  H3, H4, MidiNote
 } from '../midi_notes';
 import {applyEffects, Patch, PatchProps} from '../patch';
-import {rangeMapper} from '../utils';
+import {rangeMapper, repeat, times} from '../utils';
 import {MOD, OSC2_SEMITONE} from "../microkorg";
 import {ControlSequenceStepper} from "../effects/control-sequence-stepper";
-import {MidiSequenceDrum, MidiSequenceDrumHarmony, msHarmony, MultiSequence} from "../effects/midi-sequence-drum";
+import {
+  MidiSequenceDrum,
+  MidiSequenceDrumHarmony,
+  MidiSequenceStep,
+  msHarmony,
+  MultiSequence
+} from "../effects/midi-sequence-drum";
 import {isRealNoteOn} from "../midi-message";
 import {NoteForwarder} from "../effects/note-forwarder";
 import {KEYBOARD_IN} from "../config";
+import {ArpeggioProps, arpeggioUpDown} from "../music-utils";
 
 // const DRUM_INPUT_DEVICE = VMPK;
 const OUT_DEVICE = THROUGH_PORT;
@@ -54,52 +61,66 @@ export function midiSequenceDrumTest(props: PatchProps): Patch {
   });
 
 
-  const a4MultiSequence: MultiSequence = {sequences: [[
-    {type: 'NoteOn', note: A3, channel: 0, velocity: 100},
-    {ticks: 1},
-    {type: 'NoteOff', note: A3, channel: 0, velocity: 100},
-    {type: 'NoteOn', note: E4, channel: 0, velocity: 100},
-    {type: 'NoteOn', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
-    {type: 'NoteOff', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
-    {ticks: 1},
-    {type: 'NoteOff', note: E4, channel: 0, velocity: 100}
-  ]]};
+  const a4MultiSequence: MultiSequence = {
+    sequences: [[
+      {type: 'NoteOn', note: A3, channel: 0, velocity: 100},
+      {ticks: 1},
+      {type: 'NoteOff', note: A3, channel: 0, velocity: 100},
+      {type: 'NoteOn', note: E4, channel: 0, velocity: 100},
+      {type: 'NoteOn', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
+      {type: 'NoteOff', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
+      {ticks: 1},
+      {type: 'NoteOff', note: E4, channel: 0, velocity: 100}
+    ]]
+  };
+
+
+  const arpeggioProps: ArpeggioProps = {
+    durationTicks: 0.5,
+    channel: 1,
+    delayTicks: 0
+  }
 
   const harmonies: MidiSequenceDrumHarmony[] = [
-    msHarmony(A4, a4MultiSequence),
+    msHarmony(A4, a4MultiSequence, {},
+      repeat(arpeggioUpDown([A4, C5, E5], 3, arpeggioProps), 3)
+    ),
     msHarmony(F4, [
-      {type: 'NoteOn', note: F3, channel: 0, velocity: 100},
-      {ticks: 1},
-      {type: 'NoteOff', note: F3, channel: 0, velocity: 100},
-      {type: 'NoteOn', note: C4, channel: 0, velocity: 100},
-      {type: 'NoteOn', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
-      {type: 'NoteOff', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
-      {ticks: 1},
-      {type: 'NoteOff', note: C4, channel: 0, velocity: 100}
-
-    ]),
+        {type: 'NoteOn', note: F3, channel: 0, velocity: 100},
+        {ticks: 1},
+        {type: 'NoteOff', note: F3, channel: 0, velocity: 100},
+        {type: 'NoteOn', note: C4, channel: 0, velocity: 100},
+        {type: 'NoteOn', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
+        {type: 'NoteOff', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
+        {ticks: 1},
+        {type: 'NoteOff', note: C4, channel: 0, velocity: 100}
+      ], {},
+      repeat(arpeggioUpDown([F4, A4, C5], 3, arpeggioProps), 3)
+    ),
     msHarmony(C5, [
-      {type: 'NoteOn', note: C4, channel: 0, velocity: 100},
-      {ticks: 1},
-      {type: 'NoteOff', note: C4, channel: 0, velocity: 100},
-      {type: 'NoteOn', note: G4, channel: 0, velocity: 100},
-      {type: 'NoteOn', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
-      {type: 'NoteOff', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
-      {ticks: 1},
-      {type: 'NoteOff', note: G4, channel: 0, velocity: 100}
-
-    ]),
+        {type: 'NoteOn', note: C4, channel: 0, velocity: 100},
+        {ticks: 1},
+        {type: 'NoteOff', note: C4, channel: 0, velocity: 100},
+        {type: 'NoteOn', note: G4, channel: 0, velocity: 100},
+        {type: 'NoteOn', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
+        {type: 'NoteOff', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
+        {ticks: 1},
+        {type: 'NoteOff', note: G4, channel: 0, velocity: 100}
+      ], {},
+      repeat(arpeggioUpDown([C5, E5, G5], 3, arpeggioProps), 3)
+    ),
     msHarmony(G4, [
-      {type: 'NoteOn', note: G3, channel: 0, velocity: 100},
-      {ticks: 1},
-      {type: 'NoteOff', note: G3, channel: 0, velocity: 100},
-      {type: 'NoteOn', note: D4, channel: 0, velocity: 100},
-      {type: 'NoteOn', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
-      {type: 'NoteOff', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
-      {ticks: 1},
-      {type: 'NoteOff', note: D4, channel: 0, velocity: 100}
-
-    ]),
+        {type: 'NoteOn', note: G3, channel: 0, velocity: 100},
+        {ticks: 1},
+        {type: 'NoteOff', note: G3, channel: 0, velocity: 100},
+        {type: 'NoteOn', note: D4, channel: 0, velocity: 100},
+        {type: 'NoteOn', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
+        {type: 'NoteOff', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
+        {ticks: 1},
+        {type: 'NoteOff', note: D4, channel: 0, velocity: 100}
+      ], {},
+      repeat(arpeggioUpDown([G4, H4, D5, Gis4], 3, arpeggioProps), 3)
+    ),
   ];
 
   const sequenceDrum = new MidiSequenceDrum({
@@ -116,10 +137,12 @@ export function midiSequenceDrumTest(props: PatchProps): Patch {
       (event.message.type === 'NoteOn' || event.message.type === 'NoteOff') &&
       event.comesFrom(KEYBOARD_IN) && event.message.note > C5
     , THROUGH_PORT,
-    (message) => ({...message, channel: 1})
+    (message) => ({...message, channel: 2})
   );
 
-  const effects = [sequenceDrum, noteForwarder];
+  const controlForwarder = new ControlForwarder(KEYBOARD_IN, THROUGH_PORT, MOD, (x) => x, arpeggioProps.channel, MOD);
+
+  const effects = [sequenceDrum, noteForwarder, controlForwarder];
 
   return {
     name: 'Midi Player Drum Test',
@@ -128,7 +151,7 @@ export function midiSequenceDrumTest(props: PatchProps): Patch {
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       const midiMessage = midiEvent.message;
       beatTracker.onMidiEvent(midiEvent);
-      console.log('midiEvent', midiEvent, midiMessage);
+      // console.log('midiEvent', midiEvent, midiMessage);
       sequenceDrum.tickDuration = beatTracker.beatDuration / 2;
       applyEffects(midiEvent, midiOut, effects);
     }

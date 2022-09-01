@@ -36,8 +36,6 @@ export class MidiSequenceDrum implements Effect {
     const lastHarmonyTriggered = this.props.lastHarmonyTriggerFilter && this.props.lastHarmonyTriggerFilter(midiEvent);
     if (isRealNoteOn(midiMessage) && (this.props.triggerFilter(midiEvent) || lastHarmonyTriggered)
     ) {
-      console.log('triggerNote', midiNoteToString(midiMessage.note));
-
       const harmony = lastHarmonyTriggered && (Date.now() - this.lastTriggeredTime > 100)
         ? this.currentHarmony
         : this.props.harmonies.find(it =>
@@ -48,9 +46,12 @@ export class MidiSequenceDrum implements Effect {
 
       if (harmony) {
         this.lastTriggeredTime = Date.now();
-        console.log('harmony.baseSequence', harmony.baseSequence, 'tickDuration', this.props.tickDuration);
 
         if (this.currentHarmony !== harmony) {
+          if (this.currentSequencePlayer) {
+            this.currentSequencePlayer.stop(midiOut);
+          }
+
           this.currentSequencePlayer = new MultiMidiSequencePlayer({
             notes: 'sequences' in harmony.baseSequence ? harmony.baseSequence : {sequences: [harmony.baseSequence]},
             tickDurationMs: this.props.tickDuration,

@@ -35,3 +35,7 @@ export function times<T>(n: number, callback: (i: number) => T): T[] {
   }
   return result;
 }
+
+export function repeat<T>(array: T[], n: number): T[] {
+  return times(n, () => array).flat();
+}
