@@ -46,6 +46,8 @@ export const H5 = 71;
 export const C6 = 72;
 export const Cis6 = 73;
 export const D6 = 74;
+export const E6 = 76;
+export const F6 = 77;
 export const A6 = 81;
 export const C7 = 84;
 

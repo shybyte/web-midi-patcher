@@ -128,3 +128,7 @@ export function isRealNoteOnNote(midiMessage: MidiMessage, note: MidiNote): midi
 export function isRealNoteOnBelow(midiMessage: MidiMessage, note: MidiNote): midiMessage is NoteOn {
   return midiMessage.type === 'NoteOn' && midiMessage.velocity > 0 && midiMessage.note < note;
 }
+
+export function isRealNoteOnBetween(midiMessage: MidiMessage, minNote: MidiNote, maxNote: MidiNote): midiMessage is NoteOn {
+  return midiMessage.type === 'NoteOn' && midiMessage.velocity > 0 && midiMessage.note <= maxNote && midiMessage.note >= minNote;
+}

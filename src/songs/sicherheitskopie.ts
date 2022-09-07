@@ -40,48 +40,32 @@ import {
   MidiSequenceStep,
   msHarmony
 } from "../effects/midi-sequence-drum";
-import {isRealNoteOn, isRealNoteOnBelow, isRealNoteOnNote} from "../midi-message";
+import {isRealNoteOn, isRealNoteOnBelow, isRealNoteOnBetween, isRealNoteOnNote} from "../midi-message";
 import {NoteForwarder} from "../effects/note-forwarder";
-import {KEYBOARD_IN} from "../config";
+import {DRUM_IN, KEYBOARD_IN} from "../config";
+import {arpeggioUp, arpeggioUpDown} from "../music-utils";
 
 // const DRUM_INPUT_DEVICE = VMPK;
 const OUT_DEVICE = THROUGH_PORT;
 const DRUM_INPUT_DEVICE = HAND_SONIC;
 
-// const OUT_DEVICE = NTS;
-
+// Pulse Guitar
+// Leads/Formant Pulse
 
 export function sicherheitskopie(props: PatchProps): Patch {
   const defaultBeatDuration = 500;
 
   const beatTracker = new BeatDurationTracker({
-    filter: filterByRealNoteOn(DRUM_INPUT_DEVICE, 74),
-    defaultBeatDuration: defaultBeatDuration
+    filter: (midiEvent => midiEvent.comesFrom(DRUM_IN) && isRealNoteOnBetween(midiEvent.message, 66, 74)),
+    defaultBeatDuration: defaultBeatDuration,
+    minDuration: 200,
+    maxDuration: 1000
   });
-
 
   // Strophe: e D C
   // Bridge: h fis D E Cis
   // Refrain: fis E D
-
   // C Cis D , e E fis h
-
-  /*
-   harmony(64, repeatSequence(octaveUpSequence(A3, 1), 1)),
-    //
-    harmony(65, repeatSequence(octaveUpSequence(C3, 1), 1), {}, C3),
-    harmony(66, repeatSequence(octaveUpSequence(D3, 1), 1), {}, D3),
-    harmony(67, repeatSequence(octaveUpSequence(E3, 1), 1), {}, E3),
-    harmony(68, repeatSequence(octaveUpSequence(F3, 1), 1), {}, F3),
-    //
-    harmony(69, repeatSequence(octaveUpSequence(G3, 1), 1), {}, G3),
-    harmony(70, repeatSequence(octaveUpSequence(Gis3, 1), 1), {}, Gis3),
-    harmony(71, repeatSequence(octaveUpSequence(A3, 1), 1), {}, A3),
-    harmony(72, repeatSequence(octaveUpSequence(B3, 1), 1), {}, B3),
-  ];
-
-
-  */
 
   function bassNoteSeq(note: MidiNote): MidiSequenceStep[] {
     return [
@@ -104,6 +88,7 @@ export function sicherheitskopie(props: PatchProps): Patch {
     ]
   }
 
+
   function harmonyChord(notes: MidiNote[]): MidiSequence {
     return [
       ...notes.map((note): MidiSequenceStep => ({type: 'NoteOn', note: note, channel: 1, velocity: 100})),
@@ -113,20 +98,19 @@ export function sicherheitskopie(props: PatchProps): Patch {
   }
 
   function droneSeq(note: MidiNote): MidiSequence {
-    return [
-      {type: 'NoteOn', note: note, channel: 3, velocity: 100},
-    ];
+    const ticks = 0.2;
+    return repeatSequence(arpeggioUpDown([note, note + 7], 3, {channel: 2, delayTicks: ticks, durationTicks: ticks}), 4);
   }
 
   const harmonies: MidiSequenceDrumHarmony[] = [
-    msHarmony(66, {sequences: [bassNoteSeq(C4), bassNoteSeq(G4)]}, {62: harmonyChord([E5, G5])}, droneSeq(E4)),
-    msHarmony(67, {sequences: [bassNoteSeq(Cis4), bassNoteSeq(Gis4)]}, {62: harmonyChord([F5, Gis5])}),
-    msHarmony(68, {sequences: [bassNoteSeq(D4), bassNoteSeq(A4)]}, {62: harmonyChord([Fis5, A5])}, droneSeq(Fis4)),
+    msHarmony(66, {sequences: [bassNoteSeq(C4), bassNoteSeq(G4)]}, {62: harmonyChord([E5, G5])}, droneSeq(C4)),
+    msHarmony(67, {sequences: [bassNoteSeq(Cis4), bassNoteSeq(Gis4)]}, {62: harmonyChord([F5, Gis5])}, droneSeq(Cis4)),
+    msHarmony(68, {sequences: [bassNoteSeq(D4), bassNoteSeq(A4)]}, {62: harmonyChord([Fis5, A5])}, droneSeq(D4)),
     //
-    msHarmony(69, {sequences: [bassNoteSeq(E4), bassNoteSeq(H3)]}, {62: harmonyChord([G5, H5])}, droneSeq(G3)),
-    msHarmony(70, {sequences: [bassNoteSeq(E4), bassNoteSeq(H3)]}, {62: harmonyChord([Gis5, H5])}),
-    msHarmony(71, {sequences: [bassNoteSeq(Fis4), bassNoteSeq(Cis5)]}, {62: harmonyChord([A5, Cis6])}),
-    msHarmony(72, {sequences: [bassNoteSeq(H3), bassNoteSeq(Fis4)]}, {62: harmonyChord([D5, Fis5])}),
+    msHarmony(69, {sequences: [bassNoteSeq(E4), bassNoteSeq(H3)]}, {62: harmonyChord([G5, H5])}, droneSeq(E4)),
+    msHarmony(70, {sequences: [bassNoteSeq(E4), bassNoteSeq(H3)]}, {62: harmonyChord([Gis5, H5])}, droneSeq(E4)),
+    msHarmony(71, {sequences: [bassNoteSeq(Fis4), bassNoteSeq(Cis5)]}, {62: harmonyChord([A5, Cis6])}, droneSeq(Fis4)),
+    msHarmony(72, {sequences: [bassNoteSeq(H3), bassNoteSeq(Fis4)]}, {62: harmonyChord([D5, Fis5])}, droneSeq(H3)),
     // Keyboard
     msHarmony(
       (event) => isRealNoteOnNote(event.message, E4) && event.comesFrom(KEYBOARD_IN),
@@ -165,7 +149,9 @@ export function sicherheitskopie(props: PatchProps): Patch {
     (message) => ({...message, channel: 2})
   );
 
-  const effects = [sequenceDrum, noteForwarder, noteForwarderPitchWheel];
+  const controlForwarder = new ControlForwarder(EXPRESS_PEDAL, THROUGH_PORT, MOD, rangeMapper([0, 127], [10, 127]), 2);
+
+  const effects = [controlForwarder, sequenceDrum, noteForwarder, noteForwarderPitchWheel];
 
   return {
     name: 'Sicherheitskopie',
@@ -173,6 +159,7 @@ export function sicherheitskopie(props: PatchProps): Patch {
     drumProgram: 116, // WaSo
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       const midiMessage = midiEvent.message;
+      console.log('midiMessage:', midiMessage)
       beatTracker.onMidiEvent(midiEvent);
       sequenceDrum.tickDuration = beatTracker.beatDuration / 2;
       applyEffects(midiEvent, midiOut, effects);

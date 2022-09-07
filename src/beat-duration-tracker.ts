@@ -4,6 +4,8 @@ import {MidiFilter} from './midi-filter';
 export interface BeatDurationProps {
   filter: MidiFilter;
   defaultBeatDuration: number;
+  minDuration?: number;
+  maxDuration?: number;
 }
 
 export class BeatDurationTracker {
@@ -26,8 +28,8 @@ export class BeatDurationTracker {
     }
 
     let lastBeatDuration = Date.now() - this.lastTimeStamp;
-    const minAcceptableDuration = props.defaultBeatDuration * 2 / 3;
-    const maxAcceptableDuration = props.defaultBeatDuration * 3 / 2;
+    const minAcceptableDuration = this.props.minDuration ?? props.defaultBeatDuration * 2 / 3;
+    const maxAcceptableDuration = this.props.maxDuration ?? props.defaultBeatDuration * 3 / 2;
     if (minAcceptableDuration < lastBeatDuration && lastBeatDuration < maxAcceptableDuration) {
       this.#beatDuration = lastBeatDuration;
       console.log('Beatduration:', this.#beatDuration);

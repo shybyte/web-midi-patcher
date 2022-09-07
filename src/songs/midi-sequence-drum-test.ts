@@ -60,6 +60,8 @@ export function midiSequenceDrumTest(props: PatchProps): Patch {
     defaultBeatDuration: defaultBeatDuration
   });
 
+  const hihat = 64;
+  const hihatVelo = 80;
 
   const a4MultiSequence: MultiSequence = {
     sequences: [[
@@ -67,8 +69,8 @@ export function midiSequenceDrumTest(props: PatchProps): Patch {
       {ticks: 1},
       {type: 'NoteOff', note: A3, channel: 0, velocity: 100},
       {type: 'NoteOn', note: E4, channel: 0, velocity: 100},
-      {type: 'NoteOn', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
-      {type: 'NoteOff', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
+      {type: 'NoteOn', note: 64, channel: 0, velocity: hihatVelo, outputDevice: HAND_SONIC},
+      {type: 'NoteOff', note: 64, channel: 0, velocity: hihatVelo, outputDevice: HAND_SONIC},
       {ticks: 1},
       {type: 'NoteOff', note: E4, channel: 0, velocity: 100}
     ]]
@@ -90,8 +92,8 @@ export function midiSequenceDrumTest(props: PatchProps): Patch {
         {ticks: 1},
         {type: 'NoteOff', note: F3, channel: 0, velocity: 100},
         {type: 'NoteOn', note: C4, channel: 0, velocity: 100},
-        {type: 'NoteOn', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
-        {type: 'NoteOff', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
+        {type: 'NoteOn', note: 64, channel: 0, velocity: hihatVelo, outputDevice: HAND_SONIC},
+        {type: 'NoteOff', note: 64, channel: 0, velocity: hihatVelo, outputDevice: HAND_SONIC},
         {ticks: 1},
         {type: 'NoteOff', note: C4, channel: 0, velocity: 100}
       ], {},
@@ -102,8 +104,8 @@ export function midiSequenceDrumTest(props: PatchProps): Patch {
         {ticks: 1},
         {type: 'NoteOff', note: C4, channel: 0, velocity: 100},
         {type: 'NoteOn', note: G4, channel: 0, velocity: 100},
-        {type: 'NoteOn', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
-        {type: 'NoteOff', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
+        {type: 'NoteOn', note: 64, channel: 0, velocity: hihatVelo, outputDevice: HAND_SONIC},
+        {type: 'NoteOff', note: 64, channel: 0, velocity: hihatVelo, outputDevice: HAND_SONIC},
         {ticks: 1},
         {type: 'NoteOff', note: G4, channel: 0, velocity: 100}
       ], {},
@@ -114,8 +116,8 @@ export function midiSequenceDrumTest(props: PatchProps): Patch {
         {ticks: 1},
         {type: 'NoteOff', note: G3, channel: 0, velocity: 100},
         {type: 'NoteOn', note: D4, channel: 0, velocity: 100},
-        {type: 'NoteOn', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
-        {type: 'NoteOff', note: 64, channel: 0, velocity: 100, outputDevice: HAND_SONIC},
+        {type: 'NoteOn', note: 64, channel: 0, velocity: hihatVelo, outputDevice: HAND_SONIC},
+        {type: 'NoteOff', note: 64, channel: 0, velocity: hihatVelo, outputDevice: HAND_SONIC},
         {ticks: 1},
         {type: 'NoteOff', note: D4, channel: 0, velocity: 100}
       ], {},
@@ -151,7 +153,7 @@ export function midiSequenceDrumTest(props: PatchProps): Patch {
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       const midiMessage = midiEvent.message;
       beatTracker.onMidiEvent(midiEvent);
-      // console.log('midiEvent', midiEvent, midiMessage);
+      console.log('midiEvent', midiEvent, midiMessage);
       sequenceDrum.tickDuration = beatTracker.beatDuration / 2;
       applyEffects(midiEvent, midiOut, effects);
     }

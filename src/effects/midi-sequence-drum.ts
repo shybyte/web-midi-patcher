@@ -28,6 +28,15 @@ export class MidiSequenceDrum implements Effect {
 
   set tickDuration(valueMs: number) {
     this.props = {...this.props, tickDuration: valueMs};
+    if (this.currentSequencePlayer) {
+      this.currentSequencePlayer.tickDuration = valueMs;
+    }
+    if (this.currentDronePlayer)  {
+      this.currentDronePlayer.tickDuration = valueMs;
+    }
+    if (this.harmonyNoteSequencePlayer)  {
+      this.harmonyNoteSequencePlayer.tickDuration = valueMs;
+    }
   }
 
   onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
@@ -136,6 +145,13 @@ class MultiMidiSequencePlayer {
   constructor(private props: MultiMidiSequencePlayerProps) {
   }
 
+  set tickDuration(valueMs: number) {
+    this.props = {...this.props, tickDurationMs: valueMs};
+    if (this.currentSequencePlayer) {
+      this.currentSequencePlayer.tickDuration = valueMs;
+    }
+  }
+
   async start(midiOut: MidiOut): Promise<void> {
     if (this.currentSequencePlayer) {
       this.currentSequencePlayer.stop(midiOut);
@@ -174,6 +190,10 @@ class SingleMidiSequencePlayer {
   private startedNotes: Map<String, NoteOn> = new Map();
 
   constructor(private props: SingleMidiSequencePlayerProps) {
+  }
+
+  set tickDuration(valueMs: number) {
+    this.props = {...this.props, tickDurationMs: valueMs};
   }
 
   async start(midiOut: MidiOut) {
