@@ -2,13 +2,40 @@ import {BeatDurationTracker} from '../beat-duration-tracker';
 import {ControlForwarder} from '../effects/control-forwarder';
 import {harmony, Harmony, octaveUpSequence, repeatSequence, SequenceDrum} from '../effects/sequence-drum';
 import {MidiEvent} from '../midi-event';
-import {filterByNoteOn, filterNoteOnByPort} from '../midi-filter';
+import {filterByNoteOn, filterByRealNoteOn, filterNoteOnByPort} from '../midi-filter';
 import {MidiOut} from '../midi-out';
 import {EXPRESS_PEDAL, HAND_SONIC, MICRO_KORG, NTS, THROUGH_PORT, VMPK,} from '../midi-ports';
-import {A2, A3, A4, B3, B4, C3, C4, C5, Cis3, D3, D4, D5, Dis3, E3, E5, F3, F4, F5, Fis3, G3, H3} from '../midi_notes';
+import {
+  A2,
+  A3,
+  A4, A5, A6,
+  B3,
+  B4,
+  C3,
+  C4,
+  C5, C7,
+  Cis3,
+  D3,
+  D4,
+  D5, D6,
+  Dis3,
+  E3, E4,
+  E5, E6,
+  F3,
+  F4,
+  F5, F6,
+  Fis3,
+  G3, G4,
+  Gis5,
+  H3, MidiNote
+} from '../midi_notes';
 import {applyEffects, Patch, PatchProps} from '../patch';
-import {rangeMapper} from '../utils';
+import {rangeMapper, repeat} from '../utils';
 import {MOD} from "../microkorg";
+import {MidiSequenceDrum, MidiSequenceDrumHarmony, MidiSequenceStep, msHarmony} from "../effects/midi-sequence-drum";
+import {DRUM_IN, KEYBOARD_IN} from "../config";
+import {isRealNoteOn, isRealNoteOnBelow, isRealNoteOnBetween, isRealNoteOnNote} from "../midi-message";
+import {ArpeggioProps, arpeggioUp, arpeggioUpDown} from "../music-utils";
 
 // const DRUM_INPUT_DEVICE = VMPK;
 const OUT_DEVICE = THROUGH_PORT;
@@ -36,36 +63,69 @@ const NTS_CONTROLL = {
 
 // C cis d F g a B
 export function prokrastination(props: PatchProps): Patch {
-  const harmonies: Harmony[] = [
-    harmony(66, repeatSequence(octaveUpSequence(C3, 1), 1)),
-    harmony(67, repeatSequence(octaveUpSequence(Cis3, 1), 1), {62: [F4], 65: [F4]}),
-    harmony(68, repeatSequence(octaveUpSequence(D3, 1), 1), {62: [F4], 65: [F4]}, A4),
-    harmony(69, repeatSequence(octaveUpSequence(F3, 1), 1), {62: [A4], 65: [A4]}, C4),
-    harmony(70, repeatSequence(octaveUpSequence(G3, 1), 1), {62: [B4], 65: [B4]}, B4),
-    harmony(71, repeatSequence(octaveUpSequence(A3, 1), 1)),
-    harmony(72, repeatSequence(octaveUpSequence(B3, 1), 1), {62: [F4], 65: [F4]}, D4),
-
-  ];
-
   const defaultBeatDuration = 500;
 
   const beatTracker = new BeatDurationTracker({
-    filter: filterByNoteOn(DRUM_INPUT_DEVICE, 74),
-    defaultBeatDuration: defaultBeatDuration
+      filter: (midiEvent => midiEvent.comesFrom(DRUM_IN) && isRealNoteOnBetween(midiEvent.message, 66, 74)),
+    defaultBeatDuration: defaultBeatDuration,
+    minDuration: 300,
+    maxDuration: 1500
   });
 
-  const sequenceDrum = new SequenceDrum({
-    drumInputDevice: DRUM_INPUT_DEVICE,
-    outputDevice: OUT_DEVICE,
+  const bassChannel = 0;
+
+  function bassNote(note: MidiNote, ticks = 0.3): MidiSequenceStep[] {
+    return [
+      {type: 'NoteOn', note: note, channel: bassChannel, velocity: 100},
+      {ticks: ticks},
+      {type: 'NoteOff', note: note, channel: bassChannel, velocity: 100},
+    ]
+  }
+
+  const arpeggioProps: ArpeggioProps = {
+    durationTicks: 0.5,
+    channel: 2,
+    delayTicks: 0
+  }
+
+  function drumHarmony(trigger: number, baseNote: MidiNote, highNote1: MidiNote) {
+    return msHarmony(
+      (event) => isRealNoteOnNote(event.message, trigger) && event.comesFrom(DRUM_IN),
+      {sequences: [bassNote(baseNote)]},
+      {
+        60: {sequences: [bassNote(highNote1, 0.2)]},
+        64: {sequences: [bassNote(highNote1, 0.2)]},
+        65: {sequences: [bassNote(highNote1, 0.2)]},
+      },
+      repeat(arpeggioUp([baseNote, highNote1], 4, arpeggioProps), 2)
+    );
+  }
+
+  const harmonies: MidiSequenceDrumHarmony[] = [
+    drumHarmony(66, C3, G4),
+    drumHarmony(67, Cis3, F4),
+    drumHarmony(68, D3, F4),
+    // Drum
+    drumHarmony(69, F3, A4),
+    drumHarmony(70, G3, B4),
+    drumHarmony(71, A3, E5),
+    drumHarmony(72, B3, F4),
+  ];
+
+  const sequenceDrum = new MidiSequenceDrum({
+    harmonyNoteTriggerDevice: DRUM_IN,
+    triggerFilter: (midiEvent: MidiEvent) => midiEvent.comesFrom(DRUM_IN) || (midiEvent.comesFrom(KEYBOARD_IN) && isRealNoteOnBelow(midiEvent.message, C5)),
+    lastHarmonyTriggerFilter: (midiEvent: MidiEvent) =>
+      midiEvent.comesFrom(DRUM_IN) && isRealNoteOn(midiEvent.message) && midiEvent.message.note === 74,
+    outputDevice: THROUGH_PORT,
     harmonies,
-    note_duration: 100,
-    harmonyNoteDuration: 200,
-    harmonyNoteChannel: 0,
-    stepDuration: defaultBeatDuration / 4
+    tickDuration: defaultBeatDuration / 2,
   });
+
   const effects = [
     new ControlForwarder(EXPRESS_PEDAL, OUT_DEVICE, MOD,
-      rangeMapper([0, 127], [0, 127])
+      rangeMapper([0, 127], [0, 127]),
+      2
     ),
     sequenceDrum
   ]
@@ -79,7 +139,8 @@ export function prokrastination(props: PatchProps): Patch {
       console.log('midiEvent', midiEvent, midiMessage);
       // beatTracker.onMidiEvent(midiEvent);
       // console.log('beatTracker.beatDuration', beatTracker.beatDuration);
-      // sequenceDrum.stepDuration = beatTracker.beatDuration / 4
+      beatTracker.onMidiEvent(midiEvent);
+      sequenceDrum.tickDuration = beatTracker.beatDuration / 2;
       applyEffects(midiEvent, midiOut, effects);
     }
   }

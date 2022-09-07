@@ -6,7 +6,7 @@ import {MidiEvent} from '../midi-event';
 import {filterByNoteOn, filterNoteOnByPort} from '../midi-filter';
 import {MidiOut} from '../midi-out';
 import {EXPRESS_PEDAL, HAND_SONIC, MICRO_KORG, NTS, THROUGH_PORT, VMPK,} from '../midi-ports';
-import {A2, A4, B4, C3, C4, C5, CIS5, D3, D5, Dis3, E3, E4, E5, F3, F4, F5, G3, H4} from '../midi_notes';
+import {A2, A4, B4, C3, C4, C5, D3, D5, Dis3, E3, E4, E5, F3, F4, F5, G3, H4} from '../midi_notes';
 import {applyEffects, Patch, PatchProps} from '../patch';
 import {rangeMapper} from '../utils';
 
