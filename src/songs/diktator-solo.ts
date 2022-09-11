@@ -27,11 +27,22 @@ import {
   Fis3,
   G3,
   Gis3,
-  H3
+  H3, MidiNote
 } from '../midi_notes';
 import {applyEffects, Patch, PatchProps} from '../patch';
 import {rangeMapper} from '../utils';
 import {MOD} from "../microkorg";
+import {
+  MidiSequence,
+  MidiSequenceDrum,
+  MidiSequenceDrumHarmony,
+  MidiSequenceStep,
+  msHarmony
+} from "../effects/midi-sequence-drum";
+import {ArpeggioProps} from "../music-utils";
+import {isRealNoteOn, isRealNoteOnBelow, isRealNoteOnNote} from "../midi-message";
+import {DRUM_IN, KEYBOARD_IN} from "../config";
+import {NoteForwarder} from "../effects/note-forwarder";
 
 // const DRUM_INPUT_DEVICE = VMPK;
 const OUT_DEVICE = THROUGH_PORT;
@@ -70,37 +81,77 @@ const NTS_CONTROLL = {
 // C d e F G Gis a B / Fis h
 // C d e F Fis G Gis a B h
 export function diktatorSolo(props: PatchProps): Patch {
-  const harmonies: Harmony[] = [
-    harmony(62, repeatSequence(octaveUpSequence(Fis3, 1), 1), {}, Fis3),
-    harmony(63, repeatSequence(octaveUpSequence(H3, 1), 1), {}, H3),
-    harmony(64, repeatSequence(octaveUpSequence(A3, 1), 1)),
-    harmony(65, repeatSequence(octaveUpSequence(C3, 1), 1), {}, C3),
-    harmony(66, repeatSequence(octaveUpSequence(D3, 1), 1), {}, D3),
-    harmony(67, repeatSequence(octaveUpSequence(E3, 1), 1), {}, E3),
-    harmony(68, repeatSequence(octaveUpSequence(F3, 1), 1), {}, F3),
-    harmony(69, repeatSequence(octaveUpSequence(G3, 1), 1), {}, G3),
-    harmony(70, repeatSequence(octaveUpSequence(Gis3, 1), 1), {}, Gis3),
-    harmony(71, repeatSequence(octaveUpSequence(A3, 1), 1), {}, A3),
-    harmony(72, repeatSequence(octaveUpSequence(B3, 1), 1), {}, B3),
+  const defaultBeatDuration = 500;
+  const bassChannel = 0;
 
+  function bassNote(note: MidiNote, ticks = 1): MidiSequenceStep[] {
+    return [
+      {type: 'NoteOn', note: note, channel: bassChannel, velocity: 100},
+      {ticks: ticks},
+      {type: 'NoteOff', note: note, channel: bassChannel, velocity: 100},
+    ]
+  }
+
+  function droneSeq(note: MidiNote): MidiSequence {
+    return [
+      {type: 'NoteOn', note: note, channel: 1, velocity: 100},
+    ]
+  }
+
+  function drumHarmony(trigger: number, baseNote: MidiNote, drone = true) {
+    return msHarmony(
+      (event) => isRealNoteOnNote(event.message, trigger) && event.comesFrom(DRUM_IN),
+      {sequences: [bassNote(baseNote)]},
+      {
+      },
+      drone ? droneSeq(baseNote) : undefined
+    );
+  }
+
+  const harmonies: MidiSequenceDrumHarmony[] = [
+    drumHarmony(62, Fis3),
+    drumHarmony(63, H3),
+    drumHarmony(64, A3, false),
+    // Left
+    drumHarmony(65, C3),
+    drumHarmony(66, D3),
+    drumHarmony(67, E3),
+    drumHarmony(68, F3),
+    // Right
+    drumHarmony(69, G3),
+    drumHarmony(70, Gis3),
+    drumHarmony(71, A3),
+    drumHarmony(72, B3),
   ];
 
-  const defaultBeatDuration = 500;
 
-  const sequenceDrum = new SequenceDrum({
-    drumInputDevice: DRUM_INPUT_DEVICE,
-    outputDevice: OUT_DEVICE,
+  const sequenceDrum = new MidiSequenceDrum({
+    harmonyNoteTriggerDevice: DRUM_IN,
+    triggerFilter: (midiEvent: MidiEvent) => midiEvent.comesFrom(DRUM_IN) || (midiEvent.comesFrom(KEYBOARD_IN) && isRealNoteOnBelow(midiEvent.message, C5)),
+    lastHarmonyTriggerFilter: (midiEvent: MidiEvent) =>
+      midiEvent.comesFrom(DRUM_IN) && isRealNoteOn(midiEvent.message) && midiEvent.message.note === 74,
+    outputDevice: THROUGH_PORT,
     harmonies,
-    note_duration: 100,
-    harmonyNoteDuration: 200,
-    harmonyNoteChannel: 0,
-    stepDuration: defaultBeatDuration / 4,
+    tickDuration: defaultBeatDuration / 2,
   });
+
+  const controlForwarder = new ControlForwarder(KEYBOARD_IN, THROUGH_PORT, MOD, rangeMapper([0, 127], [10, 127]), 3);
+
+  const noteForwarder = new NoteForwarder((event) =>
+      (event.message.type === 'NoteOn' || event.message.type === 'NoteOff') &&
+      event.comesFrom(KEYBOARD_IN) && event.message.note >= C5
+    , THROUGH_PORT,
+    (message) => ({...message, channel: 2})
+  );
+
+
   const effects = [
     new ControlForwarder(EXPRESS_PEDAL, OUT_DEVICE, MOD,
       rangeMapper([0, 127], [0, 127])
     ),
-    sequenceDrum
+    sequenceDrum,
+    controlForwarder,
+    noteForwarder
   ]
 
   return {

@@ -101,6 +101,10 @@ export class MidiSequenceDrum implements Effect {
       }
     }
   }
+
+  stopDrone(midiOut: MidiOut) {
+    this.currentDronePlayer?.stop(midiOut);
+  }
 }
 
 export function msHarmony(

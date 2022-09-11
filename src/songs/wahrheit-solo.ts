@@ -25,14 +25,25 @@ import {
   F4,
   F5,
   Fis3,
-  G3,
+  G3, G4,
   Gis3,
-  H3
+  H3, MidiNote
 } from '../midi_notes';
 import {applyEffects, Patch, PatchProps} from '../patch';
-import {rangeMapper} from '../utils';
+import {rangeMapper, repeat} from '../utils';
 import {MOD, OSC2_SEMITONE} from "../microkorg";
 import {ControlSequenceStepper} from "../effects/control-sequence-stepper";
+import {
+  MidiSequence,
+  MidiSequenceDrum,
+  MidiSequenceDrumHarmony,
+  MidiSequenceStep,
+  msHarmony
+} from "../effects/midi-sequence-drum";
+import {ArpeggioProps, arpeggioUp} from "../music-utils";
+import {isRealNoteOn, isRealNoteOnBelow, isRealNoteOnNote} from "../midi-message";
+import {DRUM_IN, KEYBOARD_IN} from "../config";
+import {NoteForwarder} from "../effects/note-forwarder";
 
 // const DRUM_INPUT_DEVICE = VMPK;
 const OUT_DEVICE = THROUGH_PORT;
@@ -42,31 +53,72 @@ const DRUM_INPUT_DEVICE = HAND_SONIC;
 
 // C d e F G Gis a B
 export function wahrheitSolo(props: PatchProps): Patch {
-  const harmonies: Harmony[] = [
-    harmony(64, repeatSequence(octaveUpSequence(A3, 1), 1)),
-    //
-    harmony(65, repeatSequence(octaveUpSequence(C3, 1), 1), {}, C3),
-    harmony(66, repeatSequence(octaveUpSequence(D3, 1), 1), {}, D3),
-    harmony(67, repeatSequence(octaveUpSequence(E3, 1), 1), {}, E3),
-    harmony(68, repeatSequence(octaveUpSequence(F3, 1), 1), {}, F3),
-    //
-    harmony(69, repeatSequence(octaveUpSequence(G3, 1), 1), {}, G3),
-    harmony(70, repeatSequence(octaveUpSequence(Gis3, 1), 1), {}, Gis3),
-    harmony(71, repeatSequence(octaveUpSequence(A3, 1), 1), {}, A3),
-    harmony(72, repeatSequence(octaveUpSequence(B3, 1), 1), {}, B3),
-  ];
-
   const defaultBeatDuration = 500;
 
-  const sequenceDrum = new SequenceDrum({
-    drumInputDevice: DRUM_INPUT_DEVICE,
-    outputDevice: OUT_DEVICE,
+  const bassChannel = 0;
+
+  function bassNote(note: MidiNote, ticks = 1): MidiSequenceStep[] {
+    return [
+      {type: 'NoteOn', note: note, channel: bassChannel, velocity: 100},
+      {ticks: ticks},
+      {type: 'NoteOff', note: note, channel: bassChannel, velocity: 100},
+    ]
+  }
+
+  const arpeggioProps: ArpeggioProps = {
+    durationTicks: 0.5,
+    channel: 1,
+    delayTicks: 0
+  }
+
+  function droneSeq(note: MidiNote): MidiSequence {
+    return [
+      {type: 'NoteOn', note: note, channel: 1, velocity: 100},
+    ]
+  }
+
+  function drumHarmony(trigger: number, baseNote: MidiNote, drone = true) {
+    return msHarmony(
+      (event) => isRealNoteOnNote(event.message, trigger) && event.comesFrom(DRUM_IN),
+      {sequences: [bassNote(baseNote)]},
+      {
+      },
+      drone ? droneSeq(baseNote) : undefined
+    );
+  }
+
+  const harmonies: MidiSequenceDrumHarmony[] = [
+    drumHarmony(64, A3, false),
+    // Left
+    drumHarmony(65, C3),
+    drumHarmony(66, D3),
+    drumHarmony(67, E3),
+    drumHarmony(68, F3),
+    // Right
+    drumHarmony(69, G3),
+    drumHarmony(70, Gis3),
+    drumHarmony(71, A3),
+    drumHarmony(72, B3),
+  ];
+
+  const sequenceDrum = new MidiSequenceDrum({
+    harmonyNoteTriggerDevice: DRUM_IN,
+    triggerFilter: (midiEvent: MidiEvent) => midiEvent.comesFrom(DRUM_IN) || (midiEvent.comesFrom(KEYBOARD_IN) && isRealNoteOnBelow(midiEvent.message, C5)),
+    lastHarmonyTriggerFilter: (midiEvent: MidiEvent) =>
+      midiEvent.comesFrom(DRUM_IN) && isRealNoteOn(midiEvent.message) && midiEvent.message.note === 74,
+    outputDevice: THROUGH_PORT,
     harmonies,
-    note_duration: 100,
-    harmonyNoteDuration: 200,
-    harmonyNoteChannel: 0,
-    stepDuration: defaultBeatDuration / 4,
+    tickDuration: defaultBeatDuration / 2,
   });
+
+  const noteForwarder = new NoteForwarder((event) =>
+      (event.message.type === 'NoteOn' || event.message.type === 'NoteOff') &&
+      event.comesFrom(KEYBOARD_IN)
+    , THROUGH_PORT,
+    (message) => ({...message, channel: 1})
+  );
+
+
   const effects = [
     new ControlForwarder(HAND_SONIC, OUT_DEVICE, MOD,
       rangeMapper([0, 127], [0, 127]),
@@ -85,7 +137,8 @@ export function wahrheitSolo(props: PatchProps): Patch {
       resetFilter: filterByNoteOn(YAMAHA_PSS_A50, A3),
       resetInstantly: true,
     }),
-    sequenceDrum
+    sequenceDrum,
+    noteForwarder
   ]
 
   return {
@@ -97,12 +150,12 @@ export function wahrheitSolo(props: PatchProps): Patch {
       console.log('midiEvent', midiEvent, midiMessage);
 
       const DRUM_LOOP_NOTE = 61;
-      if (midiEvent.comesFrom(YAMAHA_PSS_A50) && midiEvent.message.type === 'NoteOn' && midiEvent.message.velocity > 0 &&
+      if (midiEvent.comesFrom(KEYBOARD_IN) && midiEvent.message.type === 'NoteOn' && midiEvent.message.velocity > 0 &&
         (midiEvent.message.note === A3 || midiEvent.message.note === F3)
       ) {
         sequenceDrum.stopDrone(midiOut);
         console.log('stopDrone#)');
-        midiOut.playNoteAndNoteOff(HAND_SONIC, DRUM_LOOP_NOTE, 10);
+        // midiOut.playNoteAndNoteOff(HAND_SONIC, DRUM_LOOP_NOTE, 10);
       }
 
       // beatTracker.onMidiEvent(midiEvent);

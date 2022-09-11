@@ -74,7 +74,7 @@ export function prokrastination(props: PatchProps): Patch {
 
   const bassChannel = 0;
 
-  function bassNote(note: MidiNote, ticks = 0.3): MidiSequenceStep[] {
+  function bassNote(note: MidiNote, ticks = 1): MidiSequenceStep[] {
     return [
       {type: 'NoteOn', note: note, channel: bassChannel, velocity: 100},
       {ticks: ticks},
@@ -97,7 +97,7 @@ export function prokrastination(props: PatchProps): Patch {
         64: {sequences: [bassNote(highNote1, 0.2)]},
         65: {sequences: [bassNote(highNote1, 0.2)]},
       },
-      repeat(arpeggioUp([baseNote, highNote1], 4, arpeggioProps), 2)
+      repeat(arpeggioUp([baseNote, highNote1], 4, arpeggioProps), 4)
     );
   }
 
