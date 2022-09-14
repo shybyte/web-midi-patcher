@@ -49,8 +49,10 @@ import {arpeggioUp, arpeggioUpDown} from "../music-utils";
 const OUT_DEVICE = THROUGH_PORT;
 const DRUM_INPUT_DEVICE = HAND_SONIC;
 
-// Pulse Guitar
+// Plucks / Sync Pluck
 // Leads/Formant Pulse
+
+const DRONE_CHANNEL = 3;
 
 export function sicherheitskopie(props: PatchProps): Patch {
   const defaultBeatDuration = 500;
@@ -99,7 +101,7 @@ export function sicherheitskopie(props: PatchProps): Patch {
 
   function droneSeq(note: MidiNote): MidiSequence {
     const ticks = 0.2;
-    return repeatSequence(arpeggioUpDown([note, note + 7], 3, {channel: 2, delayTicks: ticks, durationTicks: ticks}), 4);
+    return repeatSequence(arpeggioUpDown([note, note + 7], 3, {channel: DRONE_CHANNEL, delayTicks: ticks, durationTicks: ticks}), 4);
   }
 
   const harmonies: MidiSequenceDrumHarmony[] = [
@@ -149,7 +151,7 @@ export function sicherheitskopie(props: PatchProps): Patch {
     (message) => ({...message, channel: 2})
   );
 
-  const controlForwarder = new ControlForwarder(EXPRESS_PEDAL, THROUGH_PORT, MOD, rangeMapper([0, 127], [10, 127]), 2);
+  const controlForwarder = new ControlForwarder(EXPRESS_PEDAL, THROUGH_PORT, MOD, rangeMapper([0, 127], [10, 127]), DRONE_CHANNEL);
 
   const effects = [controlForwarder, sequenceDrum, noteForwarder, noteForwarderPitchWheel];
 
