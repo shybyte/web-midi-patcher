@@ -21,6 +21,7 @@ import {diktatorSolo} from "./songs/diktator-solo";
 import {wahrheitSolo} from "./songs/wahrheit-solo";
 import {midiSequenceDrumTest} from "./songs/midi-sequence-drum-test";
 import {sicherheitskopie} from "./songs/sicherheitskopie";
+import {usbSong} from "./songs/usb";
 
 type MIDIMessageEvent = WebMidi.MIDIMessageEvent;
 
@@ -40,6 +41,7 @@ async function start() {
   }
 
   const patchFactories = [
+    usbSong,
     sicherheitskopie,
     midiSequenceDrumTest,
     wahrheitSolo, diktatorSolo, prokrastination, soAltWieIch, sequenceDrums,
