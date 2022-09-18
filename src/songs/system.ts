@@ -14,6 +14,8 @@ import {MidiSequenceDrum, MidiSequenceDrumHarmony, MidiSequenceStep, msHarmony} 
 import {isRealNoteOn, isRealNoteOnBelow, isRealNoteOnNote} from "../midi-message";
 import {BeatDurationTracker} from "../beat-duration-tracker";
 
+const soloChannel = 1;
+
 export function system(): Patch {
 
   const defaultBeatDuration = 400;
@@ -29,7 +31,7 @@ export function system(): Patch {
       (event.message.type === 'NoteOn' || event.message.type === 'NoteOff') &&
       event.comesFrom(KEYBOARD_IN) && event.message.note >= C5
     , THROUGH_PORT,
-    (message) => ({...message, channel: 2})
+    (message) => ({...message, channel: soloChannel})
   );
 
 
@@ -124,7 +126,7 @@ export function system(): Patch {
   );
 
   const effects = [
-    new ControlForwarder(EXPRESS_PEDAL, THROUGH_PORT, MOD, rangeMapper([0, 127], [10, 127]), 2),
+    new ControlForwarder(EXPRESS_PEDAL, THROUGH_PORT, MOD, rangeMapper([0, 127], [0, 127]), soloChannel),
     noteForwarder,
     sequenceDrum,
     noteForwarderPitchWheel
