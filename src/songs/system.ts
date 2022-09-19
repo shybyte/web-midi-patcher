@@ -4,7 +4,7 @@ import {MidiEvent} from '../midi-event';
 import {filterByRealNoteOn} from '../midi-filter';
 import {MidiOut} from '../midi-out';
 import {EXPRESS_PEDAL, THROUGH_PORT} from '../midi-ports';
-import {A4, A5, A6, C5, C7, D4, D5, D6, E6, F4, F5, F6, Gis5, MidiNote} from '../midi_notes';
+import {A4, A5, A6, C5, C7, D4, D5, D6, E6, F4, F5, F6, Gis4, Gis5, H5, MidiNote} from '../midi_notes';
 import {applyEffects, Patch} from '../patch';
 import {rangeMapper} from '../utils';
 import {NoteForwarder} from "../effects/note-forwarder";
@@ -21,10 +21,12 @@ export function system(): Patch {
   const defaultBeatDuration = 400;
 
   const beatTracker = new BeatDurationTracker({
-    filter: filterByRealNoteOn(DRUM_IN, 6),
+    filter: ev =>
+      isRealNoteOn(ev.message) && ev.comesFrom(DRUM_IN) && [Gis5].includes(ev.message.note)
+      || isRealNoteOnNote(ev.message, Gis4) && ev.comesFrom(KEYBOARD_IN),
     defaultBeatDuration: defaultBeatDuration,
-    minDuration: 300,
-    maxDuration: 900
+    minDuration: 100,
+    maxDuration: 800
   });
 
   const noteForwarder = new NoteForwarder((event) =>
@@ -107,6 +109,10 @@ export function system(): Patch {
       (event) => isRealNoteOnNote(event.message, F4) && event.comesFrom(KEYBOARD_IN),
       {sequences: [repeatSequence(bassNoteFullSeq(F5, F6, C7), 2)]},
     ),
+    msHarmony(
+      (event) => isRealNoteOnNote(event.message, Gis4) && event.comesFrom(KEYBOARD_IN),
+      {sequences: [repeatSequence(bassNoteFullSeq(Gis5, H5, E6), 2)]},
+    ),
   ];
 
   const sequenceDrum = new MidiSequenceDrum({
@@ -141,7 +147,7 @@ export function system(): Patch {
       sequenceDrum.tickDuration = beatTracker.beatDuration / 2;
       applyEffects(midiEvent, midiOut, effects);
       // console.log('midiEvent:', midiEvent)
-      console.log('beatTracker:', beatTracker.beatDuration);
+      // console.log('beatTracker:', beatTracker.beatDuration);
     }
   }
 }
