@@ -41,11 +41,18 @@ async function start() {
   }
 
   const patchFactories = [
-    usbSong,
+    system,
     sicherheitskopie,
-    midiSequenceDrumTest,
-    wahrheitSolo, diktatorSolo, prokrastination, soAltWieIch, sequenceDrums,
-    pedalBaseNote, jam, test, young, wahrheit, system, diktator, liebtUns, endzeit
+    diktatorSolo,
+    soAltWieIch,
+    usbSong,
+    wahrheitSolo,
+    //
+    // verbrauchte noten
+    prokrastination,
+    // ende
+    midiSequenceDrumTest, sequenceDrums,
+    pedalBaseNote, jam, test, young, wahrheit, diktator, liebtUns, endzeit
   ];
   // const patchFactories = [jam];
   let patches = patchFactories.map((it) => it({setStatusDisplayHtml}));
