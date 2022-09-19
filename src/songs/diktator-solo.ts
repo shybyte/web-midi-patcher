@@ -40,21 +40,17 @@ import {
   msHarmony
 } from "../effects/midi-sequence-drum";
 import {ArpeggioProps} from "../music-utils";
-import {isRealNoteOn, isRealNoteOnBelow, isRealNoteOnNote} from "../midi-message";
+import {isRealNote, isRealNoteOn, isRealNoteOnBelow, isRealNoteOnNote} from "../midi-message";
 import {DRUM_IN, KEYBOARD_IN} from "../config";
 import {NoteForwarder} from "../effects/note-forwarder";
 
-// const DRUM_INPUT_DEVICE = VMPK;
 const OUT_DEVICE = THROUGH_PORT;
 const DRUM_INPUT_DEVICE = HAND_SONIC;
-// const OUT_DEVICE = NTS;
 
-const NTS_CONTROLL = {
-  CUTOFF: 43,
-  OSC_TYPE: 53,
-  OSC_SHAPE: 54,
-  OSC_ALT: 55,
-}
+
+const keyLeftChannel = 1;
+const keyRightChannel = 2;
+
 
 // Strophe
 // a G F C B
@@ -100,10 +96,11 @@ export function diktatorSolo(props: PatchProps): Patch {
 
   function drumHarmony(trigger: number, baseNote: MidiNote, drone = true) {
     return msHarmony(
-      (event) => isRealNoteOnNote(event.message, trigger) && event.comesFrom(DRUM_IN),
+      (event) =>
+        (isRealNoteOnNote(event.message, trigger) && event.comesFrom(DRUM_IN))
+        || (isRealNoteOnNote(event.message, baseNote + 12) && event.comesFrom(KEYBOARD_IN)),
       {sequences: [bassNote(baseNote)]},
-      {
-      },
+      {},
       drone ? droneSeq(baseNote) : undefined
     );
   }
@@ -111,7 +108,7 @@ export function diktatorSolo(props: PatchProps): Patch {
   const harmonies: MidiSequenceDrumHarmony[] = [
     drumHarmony(62, Fis3),
     drumHarmony(63, H3),
-    drumHarmony(64, A3, false),
+    drumHarmony(64, A2, false),
     // Left
     drumHarmony(65, C3),
     drumHarmony(66, D3),
@@ -127,7 +124,8 @@ export function diktatorSolo(props: PatchProps): Patch {
 
   const sequenceDrum = new MidiSequenceDrum({
     harmonyNoteTriggerDevice: DRUM_IN,
-    triggerFilter: (midiEvent: MidiEvent) => midiEvent.comesFrom(DRUM_IN) || (midiEvent.comesFrom(KEYBOARD_IN) && isRealNoteOnBelow(midiEvent.message, C5)),
+    triggerFilter: (midiEvent: MidiEvent) => midiEvent.comesFrom(DRUM_IN) ||
+      (midiEvent.comesFrom(KEYBOARD_IN) && isRealNoteOnBelow(midiEvent.message, C5)),
     lastHarmonyTriggerFilter: (midiEvent: MidiEvent) =>
       midiEvent.comesFrom(DRUM_IN) && isRealNoteOn(midiEvent.message) && midiEvent.message.note === 74,
     outputDevice: THROUGH_PORT,
@@ -138,10 +136,13 @@ export function diktatorSolo(props: PatchProps): Patch {
   const controlForwarder = new ControlForwarder(KEYBOARD_IN, THROUGH_PORT, MOD, rangeMapper([0, 127], [10, 127]), 3);
 
   const noteForwarder = new NoteForwarder((event) =>
-      (event.message.type === 'NoteOn' || event.message.type === 'NoteOff') &&
-      event.comesFrom(KEYBOARD_IN) && event.message.note >= C5
+      event.comesFrom(KEYBOARD_IN) && isRealNote(event.message) && event.message.note > C5
     , THROUGH_PORT,
-    (message) => ({...message, channel: 2})
+    (message) => ({
+      ...message,
+      note: message.note - 12,
+      channel: keyRightChannel
+    })
   );
 
 
@@ -164,6 +165,9 @@ export function diktatorSolo(props: PatchProps): Patch {
       // beatTracker.onMidiEvent(midiEvent);
       // console.log('beatTracker.beatDuration', beatTracker.beatDuration);
       // sequenceDrum.stepDuration = beatTracker.beatDuration / 4
+      // if (isRealNoteOn(midiEvent.message) && midiEvent.comesFrom(KEYBOARD_IN) && midiEvent.message.note < C5) {
+      //   sequenceDrum.stopDrone(midiOut);
+      // }
       applyEffects(midiEvent, midiOut, effects);
     }
   }

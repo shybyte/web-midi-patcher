@@ -121,6 +121,10 @@ export function isRealNoteOn(midiMessage: MidiMessage): midiMessage is NoteOn {
   return midiMessage.type === 'NoteOn' && midiMessage.velocity > 0;
 }
 
+export function isRealNote(midiMessage: MidiMessage): midiMessage is NoteOn | NoteOff {
+  return midiMessage.type === 'NoteOn' || midiMessage.type === 'NoteOff';
+}
+
 export function isRealNoteOnNote(midiMessage: MidiMessage, note: MidiNote): midiMessage is NoteOn {
   return midiMessage.type === 'NoteOn' && midiMessage.velocity > 0 && midiMessage.note === note;
 }
