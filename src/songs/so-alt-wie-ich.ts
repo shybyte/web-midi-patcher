@@ -8,18 +8,15 @@ import {EXPRESS_PEDAL, HAND_SONIC, MICRO_KORG, NTS, THROUGH_PORT, VMPK,} from '.
 import {A2, A3, C3, C5, Cis3, D3, D5, Dis3, E3, E5, F3, F5, Fis3, G3, H3} from '../midi_notes';
 import {applyEffects, Patch, PatchProps} from '../patch';
 import {rangeMapper} from '../utils';
+import {NoteForwarder} from "../effects/note-forwarder";
+import {KEYBOARD_IN} from "../config";
+import {isRealNote} from "../midi-message";
+import {MOD} from "../microkorg";
 
 // const DRUM_INPUT_DEVICE = VMPK;
 const OUT_DEVICE = THROUGH_PORT;
 const DRUM_INPUT_DEVICE = HAND_SONIC;
 // const OUT_DEVICE = NTS;
-
-const NTS_CONTROLL = {
-  CUTOFF: 43,
-  OSC_TYPE: 53,
-  OSC_SHAPE: 54,
-  OSC_ALT: 55,
-}
 
 // A E D E
 // A h D
@@ -32,6 +29,7 @@ export function soAltWieIch(props: PatchProps): Patch {
   const harmonies: Harmony[] = [
     harmony(67, repeatSequence(octaveUpSequence(Cis3), 4)),
     harmony(68, repeatSequence(octaveUpSequence(D3), 4)),
+    //
     harmony(69, repeatSequence(octaveUpSequence(E3), 4)),
     harmony(70, repeatSequence(octaveUpSequence(Fis3), 4)),
     harmony(71, repeatSequence(octaveUpSequence(A3), 4)),
@@ -46,6 +44,17 @@ export function soAltWieIch(props: PatchProps): Patch {
     defaultBeatDuration: defaultBeatDuration
   });
 
+  const noteForwarder = new NoteForwarder((event) =>
+      event.comesFrom(KEYBOARD_IN) && isRealNote(event.message) && event.message.note > C5
+    , THROUGH_PORT,
+    (message) => ({
+      ...message,
+      note: message.note,
+      channel: 3
+    })
+  );
+
+
   const sequenceDrum = new SequenceDrum({
     drumInputDevice: DRUM_INPUT_DEVICE,
     outputDevice: OUT_DEVICE,
@@ -53,10 +62,11 @@ export function soAltWieIch(props: PatchProps): Patch {
     stepDuration: defaultBeatDuration / 4
   });
   const effects = [
-    new ControlForwarder(EXPRESS_PEDAL, OUT_DEVICE, NTS_CONTROLL.OSC_ALT,
-      rangeMapper([0, 127], [0, 127])
+    new ControlForwarder(EXPRESS_PEDAL, OUT_DEVICE, MOD,
+      rangeMapper([0, 127], [0, 127]),3
     ),
-    sequenceDrum
+    sequenceDrum,
+    noteForwarder
   ]
 
   return {
