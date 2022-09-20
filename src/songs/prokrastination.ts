@@ -36,18 +36,10 @@ import {MidiSequenceDrum, MidiSequenceDrumHarmony, MidiSequenceStep, msHarmony} 
 import {DRUM_IN, KEYBOARD_IN} from "../config";
 import {isRealNoteOn, isRealNoteOnBelow, isRealNoteOnBetween, isRealNoteOnNote} from "../midi-message";
 import {ArpeggioProps, arpeggioUp, arpeggioUpDown} from "../music-utils";
+import {NoteForwarder} from "../effects/note-forwarder";
 
-// const DRUM_INPUT_DEVICE = VMPK;
 const OUT_DEVICE = THROUGH_PORT;
 const DRUM_INPUT_DEVICE = HAND_SONIC;
-// const OUT_DEVICE = NTS;
-
-const NTS_CONTROLL = {
-  CUTOFF: 43,
-  OSC_TYPE: 53,
-  OSC_SHAPE: 54,
-  OSC_ALT: 55,
-}
 
 // Strophe
 // 4x F C g B
@@ -122,12 +114,25 @@ export function prokrastination(props: PatchProps): Patch {
     tickDuration: defaultBeatDuration / 2,
   });
 
+  const noteForwarder = new NoteForwarder((event) =>
+      (event.message.type === 'NoteOn' || event.message.type === 'NoteOff') &&
+      event.comesFrom(KEYBOARD_IN)
+    , THROUGH_PORT,
+    (message) => ({...message, note: message.note, channel: 3})
+  );
+
+  new ControlForwarder(EXPRESS_PEDAL, OUT_DEVICE, MOD,
+    rangeMapper([0, 127], [0, 127]),
+    arpeggioProps.channel
+  )
+
   const effects = [
     new ControlForwarder(EXPRESS_PEDAL, OUT_DEVICE, MOD,
       rangeMapper([0, 127], [0, 127]),
       2
     ),
-    sequenceDrum
+    sequenceDrum,
+    noteForwarder
   ]
 
   return {
