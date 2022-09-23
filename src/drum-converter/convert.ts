@@ -10,19 +10,23 @@ export function convertH2PatternToMidiSequence(h2Pattern: string): ConvertedPatt
   const document = parser.parseFromString(h2Pattern.trim(), 'application/xml');
   const notesNodeList = document.querySelectorAll('note')!;
   const notes = [...notesNodeList].map(parseNote);
+  const midiSequence = notes.flatMap((note, i) => {
+    const noteOnOff: MidiSequenceStep[] = [
+      {type: 'NoteOn', note: note.instrument, channel: 0, velocity: note.velocity * 127},
+      {type: 'NoteOff', note: note.instrument, channel: 0, velocity: 0},
+    ];
+    const prevPosition = notes[i - 1]?.position ?? 0;
+    const positionDelta = note.position - prevPosition;
+    return positionDelta > 0
+      ? [{ticks: positionDelta}, ...noteOnOff]
+      : noteOnOff;
+  });
+  const size = getElementAsNumber(document, 'size');
+  const remainingTicks = size - notes[notes.length - 1].position;
+  midiSequence.push({ticks: remainingTicks});
   return {
-    size: getElementAsNumber(document, 'size'),
-    midiSequence: notes.flatMap((note, i) => {
-      const noteOnOff: MidiSequenceStep[] = [
-        {type: 'NoteOn', note: note.instrument, channel: 0, velocity: note.velocity * 127},
-        {type: 'NoteOff', note: note.instrument, channel: 0, velocity: 0},
-      ];
-      const prevPosition = notes[i - 1]?.position ?? 0;
-      const positionDelta = note.position - prevPosition;
-      return positionDelta > 0
-        ? [{ticks: positionDelta}, ...noteOnOff]
-        : noteOnOff;
-    })
+    size: size,
+    midiSequence: midiSequence
   };
 }
 

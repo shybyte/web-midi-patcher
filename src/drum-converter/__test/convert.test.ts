@@ -12,6 +12,7 @@ describe('convertH2PatternToMidiSequence', () => {
       midiSequence: [
         {type: 'NoteOn', note: 0, channel: 0, velocity: 0.8 * 127},
         {type: 'NoteOff', note: 0, channel: 0, velocity: 0},
+        {ticks: 48}
       ]
     });
   })
@@ -24,6 +25,7 @@ describe('convertH2PatternToMidiSequence', () => {
         {ticks: 23},
         {type: 'NoteOn', note: 1, channel: 0, velocity: 0.8 * 127},
         {type: 'NoteOff', note: 1, channel: 0, velocity: 0},
+        {ticks: 25}
       ]
     });
   })
@@ -86,7 +88,8 @@ describe('convertH2PatternToMidiSequence', () => {
           "note": 6,
           "channel": 0,
           "velocity": 0
-        }
+        },
+        {ticks: 156}
       ]
     });
   })
@@ -275,7 +278,8 @@ describe('convertH2PatternToMidiSequence', () => {
           "note": 6,
           "channel": 0,
           "velocity": 0
-        }
+        },
+        {ticks: 24}
       ]
     });
   })
