@@ -1,6 +1,6 @@
 import {MidiNote} from "./midi_notes";
 
-type Channel = number;
+export type Channel = number;
 export type U7 = number;
 export type U14 = number;
 

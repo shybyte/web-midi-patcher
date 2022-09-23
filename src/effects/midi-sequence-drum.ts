@@ -3,7 +3,7 @@ import {MidiOut} from '../midi-out';
 import {MidiNote, midiNoteToString} from '../midi_notes';
 import {Effect} from '../patch';
 import {Dictionary, waitMs} from '../utils';
-import {isRealNoteOn, MidiMessage, NoteOff, NoteOn} from "../midi-message";
+import {Channel, isRealNoteOn, MidiMessage, NoteOff, NoteOn, U7} from "../midi-message";
 import {MidiFilter} from "../midi-filter";
 
 export interface MidiSequenceDrumProps {
