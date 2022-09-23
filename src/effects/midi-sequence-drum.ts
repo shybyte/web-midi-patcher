@@ -188,7 +188,7 @@ export interface SingleMidiSequencePlayerProps {
   tickDurationMs: number;
 }
 
-class SingleMidiSequencePlayer {
+export class SingleMidiSequencePlayer {
   private noteIndex = 0;
   private stopped = false;
   private startedNotes: Map<String, NoteOn> = new Map();
