@@ -16,3 +16,10 @@ export function replaceNotes(
     return step;
   });
 }
+
+export function setOutputDevice(
+  midiSequence: MidiSequenceStep[],
+  outputDevice: string,
+): MidiSequenceStep[] {
+  return midiSequence.map(step => 'type' in step ? {...step, outputDevice: outputDevice} : step);
+}

@@ -5,10 +5,13 @@ import {SingleMidiSequencePlayer} from "../effects/midi-sequence-drum";
 import {THROUGH_PORT} from "../midi-ports";
 import {replaceNotes} from "../midi-sequence-utils";
 import {gmRockKitToFluidStandard} from "../drum-mapping";
+import {HTMLInputElement} from "happy-dom";
+import {repeatSequence} from "../effects/sequence-drum";
+import {repeat} from "../utils";
 
-const inputArray = document.getElementById('input') as HTMLInputElement;
+const inputArray = document.getElementById('input') as HTMLTextAreaElement;
 inputArray.value = ROCK_H2;
-const outputArray = document.getElementById('output') as HTMLInputElement;
+const outputArray = document.getElementById('output') as HTMLTextAreaElement;
 
 function onInput() {
   const h2PatternXml = inputArray.value;
@@ -28,14 +31,16 @@ async function startPlayer() {
   console.log('Inputs:', [...midiAccess.inputs.values()].map(it => it.name));
   console.log('Outputs:', [...midiAccess.outputs.values()].map(it => it.name));
   const midiOut = new MidiOut(midiAccess.outputs);
+  const tickDurationInput = document.getElementById('tickDuration') as unknown as HTMLInputElement;
+  const repetitionsInput = document.getElementById('repetitions') as unknown as HTMLInputElement;
   const playButton = document.getElementById('playButton') as HTMLButtonElement;
   playButton.addEventListener('click', () => {
     const notes = JSON.parse(outputArray.value);
     console.log('notes:', notes)
     const singleMidiSequencePlayer = new SingleMidiSequencePlayer({
-      notes: replaceNotes(notes, gmRockKitToFluidStandard),
+      notes: repeat(replaceNotes(notes, gmRockKitToFluidStandard), parseInt(repetitionsInput.value)),
       outputPortName: THROUGH_PORT,
-      tickDurationMs: 10
+      tickDurationMs: parseFloat(tickDurationInput.value)
     });
     singleMidiSequencePlayer.start(midiOut);
   })
