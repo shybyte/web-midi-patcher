@@ -4,6 +4,7 @@ specifiers:
   '@types/webmidi': ^2.0.6
   '@vitest/coverage-c8': ^0.23.4
   '@vitest/ui': ^0.23.4
+  fast-check: ^3.1.4
   happy-dom: ^6.0.4
   typescript: ^4.6.3
   vite: ^2.9.5
@@ -15,6 +16,7 @@ dependencies:
 devDependencies:
   '@vitest/coverage-c8': 0.23.4_ekurfxtl75ugimk73u2yaztc4a
   '@vitest/ui': 0.23.4
+  fast-check: 3.1.4
   happy-dom: 6.0.4
   typescript: 4.6.3
   vite: 2.9.5
@@ -745,6 +747,13 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
+  /fast-check/3.1.4:
+    resolution: {integrity: sha512-AC4o8U7riY668tHAcJ10PHWpmhaNDfyzs2THFwQ6FJMPP05EmHKEmYvup7B1DCS+kKAzzosjSF51TamUM5IyPA==}
+    engines: {node: '>=8.0.0'}
+    dependencies:
+      pure-rand: 5.0.3
+    dev: true
+
   /find-up/5.0.0:
     resolution: {integrity: sha512-78/PXT1wlLLDgTzDs7sjq9hzz0vXD+zn+7wypEe4fXQxCmdmqfGsEPQxmiCSQI3ajFV91bVSsvNtrJRiW6nGng==}
     engines: {node: '>=10'}
@@ -1091,6 +1100,10 @@ packages:
     resolution: {integrity: sha512-+CMAlLHqwRYwBMXKCP+o8ns7DN+xHDUiI+0nArsiJ9y+kJVPLFxEaSw6Ha9s9H0tftxg2Yzl25wqj9G7m5wLZg==}
     dependencies:
       asap: 2.0.6
+    dev: true
+
+  /pure-rand/5.0.3:
+    resolution: {integrity: sha512-9N8x1h8dptBQpHyC7aZMS+iNOAm97WMGY0AFrguU1cpfW3I5jINkWe5BIY5md0ofy+1TCIELsVcm/GJXZSaPbw==}
     dev: true
 
   /qs/6.11.0:
