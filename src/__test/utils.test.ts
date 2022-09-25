@@ -1,4 +1,4 @@
-import {assert, expect, describe, test} from 'vitest';
+import {assert, describe, expect, test} from 'vitest';
 import * as fc from 'fast-check';
 import {mergeByLength} from "../utils";
 
@@ -71,19 +71,18 @@ describe('mergeByLength', () => {
       (arr1, arr2) => {
         const mergedArray = mergeByLength(arr1, arr2, getDummyLength);
 
+        expect(mergedArray.length).toEqual(arr1.length + arr2.length);
         expect(mergedArray).to.include.members(arr1);
         expect(mergedArray).to.include.members(arr2);
-
         expect(mergedArray.filter(x => arr1.includes(x))).toEqual(arr1);
         expect(mergedArray.filter(x => arr2.includes(x))).toEqual(arr2);
 
-        const positions1 = getPositions(arr1);
-        const positions2 = getPositions(arr2);
-        const mergedOriginalPositions = new Map([...positions1, ...positions2]);
-
+        // Is correctly sorted?
+        const mergedOriginalPositions = new Map([...(getPositions(arr1)), ...(getPositions(arr2))]);
         for (let idx = 1; idx < mergedArray.length; ++idx)
           if (mergedOriginalPositions.get(mergedArray[idx - 1])! > mergedOriginalPositions.get(mergedArray[idx])!)
             return false;
+
         return true;
       }
     )
