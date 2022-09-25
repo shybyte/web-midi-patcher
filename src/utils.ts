@@ -39,3 +39,47 @@ export function times<T>(n: number, callback: (i: number) => T): T[] {
 export function repeat<T>(array: T[], n: number): T[] {
   return times(n, () => array).flat();
 }
+
+export function merge<T>(array1: T[], array2: T[], getPosition: (x: T) => number): T[] {
+  let i1 = 0;
+  let i2 = 0;
+  const result: T[] = [];
+
+  while (i1 < array1.length && i2 < array2.length) {
+    if (getPosition(array2[i2]) < getPosition(array1[i1])) {
+      result.push(array2[i2++]);
+    } else {
+      result.push(array1[i1++]);
+    }
+  }
+
+  result.push(...array1.slice(i1));
+  result.push(...array2.slice(i2));
+
+  return result;
+}
+
+export function mergeByLength<T>(array1: T[], array2: T[], getLength: (x: T) => number): T[] {
+  let i1 = 0;
+  let value1 = 0;
+  let i2 = 0;
+  let value2 = 0;
+  const result: T[] = [];
+
+  while (i1 < array1.length && i2 < array2.length) {
+    if (value2 < value1) {
+      value2 += getLength(array2[i2]);
+      result.push(array2[i2]);
+      i2 += 1;
+    } else {
+      value1 += getLength(array1[i1]);
+      result.push(array1[i1]);
+      i1 += 1;
+    }
+  }
+
+  result.push(...array1.slice(i1));
+  result.push(...array2.slice(i2));
+
+  return result;
+}

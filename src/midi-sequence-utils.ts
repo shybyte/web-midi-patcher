@@ -1,5 +1,5 @@
 import {MidiSequenceStep} from "./effects/midi-sequence-drum";
-import {Dictionary} from "./utils";
+import {Dictionary, mergeByLength} from "./utils";
 import {MidiNote} from "./midi_notes";
 
 export function replaceNotes(
@@ -22,4 +22,8 @@ export function setOutputDevice(
   outputDevice: string,
 ): MidiSequenceStep[] {
   return midiSequence.map(step => 'type' in step ? {...step, outputDevice: outputDevice} : step);
+}
+
+export function mergeMidiSequences(seq1: MidiSequenceStep[], seq2: MidiSequenceStep[]): MidiSequenceStep[] {
+  return mergeByLength(seq1, seq2, step => 'type' in step ? 0 : step.ticks);
 }
