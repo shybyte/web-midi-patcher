@@ -93,6 +93,7 @@ export function prokrastination(props: PatchProps): Patch {
     );
   }
 
+  // C cis d F g a B
   const harmonies: MidiSequenceDrumHarmony[] = [
     drumHarmony(66, C3, G4),
     drumHarmony(67, Cis3, F4),

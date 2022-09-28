@@ -43,6 +43,9 @@ import {ArpeggioProps} from "../music-utils";
 import {isRealNote, isRealNoteOn, isRealNoteOnBelow, isRealNoteOnNote} from "../midi-message";
 import {DRUM_IN, KEYBOARD_IN} from "../config";
 import {NoteForwarder} from "../effects/note-forwarder";
+import {divideTicks, mergeMidiSequences, replaceNotes, setOutputDevice} from "../midi-sequence-utils";
+import {DRUM_AND_BASS_1A} from "../patterns/drum-and-bass-1";
+import {gmRockKitToHandSonicStandard} from "../drum-mapping";
 
 const OUT_DEVICE = THROUGH_PORT;
 const DRUM_INPUT_DEVICE = HAND_SONIC;
@@ -79,35 +82,44 @@ const keyRightChannel = 2;
 export function diktatorSolo(props: PatchProps): Patch {
   const defaultBeatDuration = 500;
   const bassChannel = 0;
+  const droneChannel = 1;
 
   function bassNote(note: MidiNote, ticks = 1): MidiSequenceStep[] {
     return [
       {type: 'NoteOn', note: note, channel: bassChannel, velocity: 100},
       {ticks: ticks},
       {type: 'NoteOff', note: note, channel: bassChannel, velocity: 100},
-    ]
+    ];
   }
 
   function droneSeq(note: MidiNote): MidiSequence {
     return [
-      {type: 'NoteOn', note: note, channel: 1, velocity: 100},
+      // {type: 'NoteOn', note: note, channel: droneChannel, velocity: 100},
     ]
   }
 
   function drumHarmony(trigger: number, baseNote: MidiNote, drone = true) {
+    const mergedBaseSeq = mergeMidiSequences(drums(), bassNote(baseNote));
+    console.log('drums():', drums())
+    console.log('mergedBaseSeq:', mergedBaseSeq)
     return msHarmony(
       (event) =>
         (isRealNoteOnNote(event.message, trigger) && event.comesFrom(DRUM_IN))
         || (isRealNoteOnNote(event.message, baseNote + 12) && event.comesFrom(KEYBOARD_IN)),
-      {sequences: [bassNote(baseNote)]},
+      {sequences: [mergedBaseSeq]},
       {},
       drone ? droneSeq(baseNote) : undefined
     );
   }
 
+  function drums(): MidiSequenceStep[] {
+    return divideTicks(
+      replaceNotes(setOutputDevice(DRUM_AND_BASS_1A, HAND_SONIC), gmRockKitToHandSonicStandard),
+      192/8
+    );
+  }
+
   const harmonies: MidiSequenceDrumHarmony[] = [
-    drumHarmony(62, Fis3),
-    drumHarmony(63, H3),
     drumHarmony(64, A2, false),
     // Left
     drumHarmony(65, C3),
@@ -133,7 +145,7 @@ export function diktatorSolo(props: PatchProps): Patch {
     tickDuration: defaultBeatDuration / 2,
   });
 
-  const controlForwarder = new ControlForwarder(KEYBOARD_IN, THROUGH_PORT, MOD, rangeMapper([0, 127], [10, 127]), 3);
+  const controlForwarder = new ControlForwarder(KEYBOARD_IN, THROUGH_PORT, MOD, rangeMapper([0, 127], [10, 127]), droneChannel);
 
   const noteForwarder = new NoteForwarder((event) =>
       event.comesFrom(KEYBOARD_IN) && isRealNote(event.message) && event.message.note > C5

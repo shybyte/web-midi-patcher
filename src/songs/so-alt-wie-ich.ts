@@ -54,7 +54,6 @@ export function soAltWieIch(props: PatchProps): Patch {
     })
   );
 
-
   const sequenceDrum = new SequenceDrum({
     drumInputDevice: DRUM_INPUT_DEVICE,
     outputDevice: OUT_DEVICE,

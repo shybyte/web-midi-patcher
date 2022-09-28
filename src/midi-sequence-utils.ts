@@ -27,3 +27,7 @@ export function setOutputDevice(
 export function mergeMidiSequences(seq1: MidiSequenceStep[], seq2: MidiSequenceStep[]): MidiSequenceStep[] {
   return mergeByLength(seq1, seq2, step => 'type' in step ? 0 : step.ticks);
 }
+
+export function divideTicks(midiSequence: MidiSequenceStep[], divisor: number): MidiSequenceStep[] {
+  return midiSequence.map(step => 'type' in step ? step : {ticks: step.ticks / divisor});
+}

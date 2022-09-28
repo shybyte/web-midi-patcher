@@ -29,3 +29,10 @@ export const gmRockKitToFluidStandard = {
   [GmRockKit.snareRimshot]: FluidStandard.snare,
   [GmRockKit.hatClosed]: FluidStandard.hatClosed,
 }
+
+export const gmRockKitToHandSonicStandard = {
+  [GmRockKit.kick]: 74,
+  [GmRockKit.snare]: 60,
+  [GmRockKit.hatClosed]: 64,
+  [GmRockKit.snareRimshot]: 60,
+}
