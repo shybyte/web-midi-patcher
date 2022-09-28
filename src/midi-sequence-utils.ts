@@ -25,13 +25,11 @@ export function setOutputDevice(
 }
 
 export function mergeMidiSequences(seq1: MidiSequenceStep[], seq2: MidiSequenceStep[]): MidiSequenceStep[] {
-  const messagesWithPos1 = getOutputMidiMessagesWithPos(seq1);
-  const messagesWithPos2 = getOutputMidiMessagesWithPos(seq2);
-  const mergedMessagesWithPos = merge(messagesWithPos1, messagesWithPos2, step => step.pos);
+  const mergedMessagesWithPos = merge(getOutputMidiMessagesWithPos(seq1), getOutputMidiMessagesWithPos(seq2), step => step.pos);
   const result = convertPosToPauses(mergedMessagesWithPos);
 
   const missingPauseAtEnd = Math.max(getSeqLength(seq1), getSeqLength(seq2)) - getSeqLength(result);
-  if (missingPauseAtEnd>0) {
+  if (missingPauseAtEnd > 0) {
     result.push({ticks: missingPauseAtEnd})
   }
 
