@@ -1,91 +1,71 @@
 import {assert, describe, expect, test} from 'vitest';
 import * as fc from 'fast-check';
-import {mergeByLength} from "../utils";
+import {merge} from "../utils";
 
-
-describe('mergeByLength', () => {
-  interface DummyObject {
-    id: number;
-    delta: number;
-  }
-
-  function getDummyLength(x: DummyObject): number {
-    return x.delta;
-  }
-
-  function getIds(array: DummyObject[]): number[] {
-    return array.map(x => x.id);
+describe('merge', () => {
+  function identity<T>(x: T): T {
+    return x;
   }
 
   test('2 empty lists', () => {
     assert.deepEqual(
-      getIds(mergeByLength([], [], getDummyLength)),
+      merge([], [], identity),
       []
     );
   });
 
   test('1 empty list', () => {
     assert.deepEqual(
-      getIds(mergeByLength([{id: 0, delta: 0}], [], getDummyLength)),
-      [0]
+      merge([], [2, 3], identity),
+      [2, 3]
     );
     assert.deepEqual(
-      getIds(mergeByLength([], [{id: 0, delta: 0}], getDummyLength)),
-      [0]
+      merge([1, 2], [], identity),
+      [1, 2]
     );
   });
 
-
-  test('2 lists', () => {
-    const result = mergeByLength(
-      [
-        {id: 0, delta: 1},
-        {id: 1, delta: 1},
-        {id: 2, delta: 1},
-      ],
-      [
-        {id: 10, delta: 1},
-        {id: 11, delta: 1},
-        {id: 12, delta: 1},
-      ], getDummyLength);
-
-    assert.deepEqual(getIds(result),
-      [0, 10, 1, 11, 2, 12]
+  test('concat 2 lists', () => {
+    assert.deepEqual(
+      merge([1, 2], [3, 4], identity),
+      [1, 2, 3, 4]
     );
   });
 
-  function getPositions(array: DummyObject[]): Map<DummyObject, number> {
-    let pos = 0;
-    const result = new Map();
-    for (const dummyObject of array) {
-      result.set(dummyObject, pos);
-      pos += getDummyLength(dummyObject);
-    }
-    return result;
+  test('merge long list', () => {
+    assert.deepEqual(
+      merge([1, 3, 5], [2, 4, 6], identity),
+      [1, 2, 3, 4, 5, 6]
+    );
+  });
+
+  function sortNumbers(array: number[]): number[] {
+    return [...array].sort((a, b) => a - b);
   }
 
-  test('mergeByLength should work for all inputs', () => fc.assert(
+  test('merge should work for all inputs', () => fc.assert(
     fc.property(
-      fc.array(fc.record<DummyObject>({id: fc.nat(), delta: fc.double({min: 0, max: 1000})})),
-      fc.array(fc.record<DummyObject>({id: fc.nat(), delta: fc.double({min: 0, max: 1000})})),
-      (arr1, arr2) => {
-        const mergedArray = mergeByLength(arr1, arr2, getDummyLength);
+      fc.array(fc.nat()),
+      fc.array(fc.nat()),
+      (arr1Unsorted, arr2Unsorted) => {
+        const arr1 = sortNumbers(arr1Unsorted);
+        const arr2 = sortNumbers(arr2Unsorted);
+
+        const mergedArray = merge(arr1, arr2, identity);
 
         expect(mergedArray.length).toEqual(arr1.length + arr2.length);
         expect(mergedArray).to.include.members(arr1);
         expect(mergedArray).to.include.members(arr2);
-        expect(mergedArray.filter(x => arr1.includes(x))).toEqual(arr1);
-        expect(mergedArray.filter(x => arr2.includes(x))).toEqual(arr2);
 
         // Is correctly sorted?
-        const mergedOriginalPositions = new Map([...(getPositions(arr1)), ...(getPositions(arr2))]);
         for (let idx = 1; idx < mergedArray.length; ++idx)
-          if (mergedOriginalPositions.get(mergedArray[idx - 1])! > mergedOriginalPositions.get(mergedArray[idx])!)
+          if (mergedArray[idx - 1] > mergedArray[idx])
             return false;
 
         return true;
       }
     )
-  ));
-})
+  ))
+});
+
 
