@@ -61,7 +61,7 @@ export function wahrheitSolo(props: PatchProps): Patch {
   const bassChannel = 0;
 
   const beatTracker = new BeatDurationTracker({
-    filter: (midiEvent => midiEvent.comesFrom(DRUM_IN) && isRealNoteOnBetween(midiEvent.message, 65, 72)),
+    filter: (midiEvent => midiEvent.comesFrom(DRUM_IN) && isRealNoteOnBetween(midiEvent.message, 74, 74)),
     defaultBeatDuration: defaultBeatDuration,
     minDuration: 300,
     maxDuration: 1500

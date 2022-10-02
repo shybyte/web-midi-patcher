@@ -9,7 +9,7 @@ import {A2, A3, C3, C5, Cis3, D3, D5, Dis3, E3, E5, F3, F5, Fis3, G3, H3} from '
 import {applyEffects, Patch, PatchProps} from '../patch';
 import {rangeMapper} from '../utils';
 import {NoteForwarder} from "../effects/note-forwarder";
-import {KEYBOARD_IN} from "../config";
+import {FOOT_PEDAL, KEYBOARD_IN} from "../config";
 import {isRealNote} from "../midi-message";
 import {MOD} from "../microkorg";
 
@@ -60,13 +60,18 @@ export function soAltWieIch(props: PatchProps): Patch {
     harmonies,
     stepDuration: defaultBeatDuration / 4
   });
+
+  const controlForwarder = new ControlForwarder(FOOT_PEDAL, THROUGH_PORT, MOD, rangeMapper([0, 127], [10, 127]), 0);
+
   const effects = [
     new ControlForwarder(EXPRESS_PEDAL, OUT_DEVICE, MOD,
       rangeMapper([0, 127], [0, 127]),3
     ),
     sequenceDrum,
-    noteForwarder
+    noteForwarder,
+    controlForwarder
   ]
+
 
   return {
     name: 'So alt wie ich',

@@ -58,3 +58,11 @@ export function merge<T>(array1: T[], array2: T[], getPosition: (x: T) => number
 
   return result;
 }
+
+export function range(start: number, endInclusive: number): number[] {
+  const result: number[] = [];
+  for (let i = start; i <= endInclusive; i++) {
+    result.push(i);
+  }
+  return result;
+}

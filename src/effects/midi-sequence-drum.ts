@@ -42,7 +42,9 @@ export class MidiSequenceDrum implements Effect {
   onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
     const midiMessage = midiEvent.message;
     // console.log('midiEvent', midiEvent, midiMessage);
-    const lastHarmonyTriggered = this.props.lastHarmonyTriggerFilter && this.props.lastHarmonyTriggerFilter(midiEvent);
+    const lastHarmonyTriggered = this.currentHarmony && this.currentHarmony.lastHarmonyTriggerFilter
+      ? this.currentHarmony.lastHarmonyTriggerFilter(midiEvent)
+      : this.props.lastHarmonyTriggerFilter && this.props.lastHarmonyTriggerFilter(midiEvent);
     if (isRealNoteOn(midiMessage) && (this.props.triggerFilter(midiEvent) || lastHarmonyTriggered)
     ) {
       const harmony = lastHarmonyTriggered && (Date.now() - this.lastTriggeredTime > 100)
@@ -112,9 +114,10 @@ export function msHarmony(
   baseSequence: MidiSequence,
   harmonyNotesByTriggerNode: Dictionary<number, MidiSequence> = {},
   droneSequence?: MidiSequence,
+  lastHarmonyTriggerFilter?: (midiEvent: MidiEvent) => boolean
 ): MidiSequenceDrumHarmony {
   return {
-    harmonyTrigger: harmonyTrigger, baseSequence, harmonyNotesByTriggerNode, droneSequence
+    harmonyTrigger: harmonyTrigger, baseSequence, harmonyNotesByTriggerNode, droneSequence, lastHarmonyTriggerFilter
   }
 }
 
@@ -125,7 +128,8 @@ export interface MidiSequenceDrumHarmony {
   harmonyTrigger: HarmonyTrigger;
   baseSequence: MidiSequence;
   droneSequence?: MidiSequence;
-  harmonyNotesByTriggerNode: Dictionary<number, MidiSequence>
+  harmonyNotesByTriggerNode: Dictionary<number, MidiSequence>;
+  lastHarmonyTriggerFilter?: (midiEvent: MidiEvent) => boolean;
 }
 
 

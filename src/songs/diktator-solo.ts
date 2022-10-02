@@ -30,7 +30,7 @@ import {
   H3, MidiNote
 } from '../midi_notes';
 import {applyEffects, Patch, PatchProps} from '../patch';
-import {rangeMapper} from '../utils';
+import {range, rangeMapper, repeat} from '../utils';
 import {MOD} from "../microkorg";
 import {
   MidiSequence,
@@ -46,6 +46,8 @@ import {NoteForwarder} from "../effects/note-forwarder";
 import {divideTicks, mergeMidiSequences, replaceNotes, setOutputDevice} from "../midi-sequence-utils";
 import {DRUM_AND_BASS_1A} from "../patterns/drum-and-bass-1";
 import {gmRockKitToHandSonicStandard} from "../drum-mapping";
+import {ControlTracker} from "../effects/control-tracker";
+import {NEW_ORLEANS_1A} from "../patterns/new-orleans";
 
 const OUT_DEVICE = THROUGH_PORT;
 const DRUM_INPUT_DEVICE = HAND_SONIC;
@@ -84,6 +86,8 @@ export function diktatorSolo(props: PatchProps): Patch {
   const bassChannel = 0;
   const droneChannel = 1;
 
+  const controlTracker = new ControlTracker(KEYBOARD_IN, MOD);
+
   function bassNote(note: MidiNote, ticks = 1): MidiSequenceStep[] {
     return [
       {type: 'NoteOn', note: note, channel: bassChannel, velocity: 100},
@@ -92,34 +96,67 @@ export function diktatorSolo(props: PatchProps): Patch {
     ];
   }
 
+  function bassNotes(note: MidiNote, ticks = 0.5): MidiSequenceStep[] {
+    return repeat([
+      {type: 'NoteOn', note: note, channel: bassChannel, velocity: 100},
+      {ticks: ticks},
+      {type: 'NoteOff', note: note, channel: bassChannel, velocity: 100},
+      {ticks: ticks},
+    ], 8);
+  }
+
   function droneSeq(note: MidiNote): MidiSequence {
     return [
-      // {type: 'NoteOn', note: note, channel: droneChannel, velocity: 100},
+      {type: 'NoteOn', note: note, channel: droneChannel, velocity: 100},
     ]
   }
 
   function drumHarmony(trigger: number, baseNote: MidiNote, drone = true) {
-    const mergedBaseSeq = mergeMidiSequences(drums(), bassNote(baseNote));
-    console.log('drums():', drums())
-    console.log('mergedBaseSeq:', mergedBaseSeq)
     return msHarmony(
       (event) =>
-        (isRealNoteOnNote(event.message, trigger) && event.comesFrom(DRUM_IN))
-        || (isRealNoteOnNote(event.message, baseNote + 12) && event.comesFrom(KEYBOARD_IN)),
-      {sequences: [mergedBaseSeq]},
+        (isRealNoteOnNote(event.message, trigger) && event.comesFrom(DRUM_IN)),
+      {sequences: [bassNote(baseNote, 1.5)]},
       {},
       drone ? droneSeq(baseNote) : undefined
     );
   }
 
-  function drums(): MidiSequenceStep[] {
+  function keyboardHarmony(baseNote: MidiNote): MidiSequenceDrumHarmony[] {
+    return [
+      msHarmony(
+        (event) => (controlTracker.value < 20 && isRealNoteOnNote(event.message, baseNote + 12) && event.comesFrom(KEYBOARD_IN)),
+        {sequences: [mergeMidiSequences(drums(DRUM_AND_BASS_1A), bassNote(baseNote))]},
+        {},
+        droneSeq(baseNote),
+        (ev) => false
+      ),
+      msHarmony(
+        (event) => (controlTracker.value < 100 && isRealNoteOnNote(event.message, baseNote + 12) && event.comesFrom(KEYBOARD_IN)),
+        {sequences: [repeatSequence(mergeMidiSequences(drums(NEW_ORLEANS_1A), bassNotes(baseNote)), 2)]},
+        {},
+        droneSeq(baseNote),
+        (ev) => false
+      ),
+      msHarmony(
+        (event) => (controlTracker.value >= 100 && isRealNoteOnNote(event.message, baseNote + 12) && event.comesFrom(KEYBOARD_IN)),
+        {sequences: [bassNote(baseNote)]},
+        {},
+        droneSeq(baseNote),
+        (ev) => false
+      ),
+    ];
+  }
+
+  function drums(pattern: MidiSequenceStep[]): MidiSequenceStep[] {
     return divideTicks(
-      replaceNotes(setOutputDevice(DRUM_AND_BASS_1A, HAND_SONIC), gmRockKitToHandSonicStandard),
-      192/8
+      replaceNotes(setOutputDevice(pattern, HAND_SONIC), gmRockKitToHandSonicStandard),
+      192 / 8
     );
   }
 
   const harmonies: MidiSequenceDrumHarmony[] = [
+    ...range(C3, H3).flatMap(keyboardHarmony),
+    // Drums
     drumHarmony(64, A2, false),
     // Left
     drumHarmony(65, C3),
@@ -167,16 +204,24 @@ export function diktatorSolo(props: PatchProps): Patch {
     noteForwarder
   ]
 
+  const beatTracker = new BeatDurationTracker({
+    filter: filterByNoteOn(DRUM_INPUT_DEVICE, 74),
+    defaultBeatDuration: defaultBeatDuration,
+    minDuration: defaultBeatDuration / 2,
+    maxDuration: defaultBeatDuration * 2
+  });
+
   return {
     name: 'Diktator Solo',
     midiProgram: 28, // a45
     drumProgram: 113, // DikSolo
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       const midiMessage = midiEvent.message;
+      controlTracker.onMidiEvent(midiEvent);
       console.log('midiEvent', midiEvent, midiMessage);
-      // beatTracker.onMidiEvent(midiEvent);
+      beatTracker.onMidiEvent(midiEvent);
       // console.log('beatTracker.beatDuration', beatTracker.beatDuration);
-      // sequenceDrum.stepDuration = beatTracker.beatDuration / 4
+      sequenceDrum.tickDuration = beatTracker.beatDuration / 2;
       // if (isRealNoteOn(midiEvent.message) && midiEvent.comesFrom(KEYBOARD_IN) && midiEvent.message.note < C5) {
       //   sequenceDrum.stopDrone(midiOut);
       // }
