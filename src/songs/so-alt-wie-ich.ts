@@ -5,13 +5,37 @@ import {MidiEvent} from '../midi-event';
 import {filterByNoteOn, filterNoteOnByPort} from '../midi-filter';
 import {MidiOut} from '../midi-out';
 import {EXPRESS_PEDAL, HAND_SONIC, MICRO_KORG, NTS, THROUGH_PORT, VMPK,} from '../midi-ports';
-import {A2, A3, C3, C5, Cis3, D3, D5, Dis3, E3, E5, F3, F5, Fis3, G3, H3} from '../midi_notes';
+import {
+  A2,
+  A3,
+  A4,
+  B3,
+  B4,
+  C3,
+  C5,
+  Cis3,
+  D3,
+  D5,
+  Dis3,
+  E3,
+  E5,
+  F3,
+  F4,
+  F5,
+  Fis3,
+  G3,
+  G4,
+  H3,
+  MidiNote
+} from '../midi_notes';
 import {applyEffects, Patch, PatchProps} from '../patch';
-import {rangeMapper} from '../utils';
+import {rangeMapper, repeat} from '../utils';
 import {NoteForwarder} from "../effects/note-forwarder";
-import {FOOT_PEDAL, KEYBOARD_IN} from "../config";
-import {isRealNote} from "../midi-message";
+import {DRUM_IN, FOOT_PEDAL, KEYBOARD_IN} from "../config";
+import {isRealNote, isRealNoteOn, isRealNoteOnBelow, isRealNoteOnNote} from "../midi-message";
 import {MOD} from "../microkorg";
+import {MidiSequenceDrum, MidiSequenceDrumHarmony, msHarmony} from "../effects/midi-sequence-drum";
+import {ArpeggioProps, arpeggioUp} from "../music-utils";
 
 // const DRUM_INPUT_DEVICE = VMPK;
 const OUT_DEVICE = THROUGH_PORT;
@@ -26,17 +50,6 @@ const DRUM_INPUT_DEVICE = HAND_SONIC;
 
 // cis D E fis A h
 export function soAltWieIch(props: PatchProps): Patch {
-  const harmonies: Harmony[] = [
-    harmony(67, repeatSequence(octaveUpSequence(Cis3), 4)),
-    harmony(68, repeatSequence(octaveUpSequence(D3), 4)),
-    //
-    harmony(69, repeatSequence(octaveUpSequence(E3), 4)),
-    harmony(70, repeatSequence(octaveUpSequence(Fis3), 4)),
-    harmony(71, repeatSequence(octaveUpSequence(A3), 4)),
-    harmony(72, repeatSequence(octaveUpSequence(H3), 4)),
-
-  ];
-
   const defaultBeatDuration = 500;
 
   const beatTracker = new BeatDurationTracker({
@@ -49,23 +62,51 @@ export function soAltWieIch(props: PatchProps): Patch {
     , THROUGH_PORT,
     (message) => ({
       ...message,
-      note: message.note,
+      note: message.note + 12,
       channel: 3
     })
   );
 
-  const sequenceDrum = new SequenceDrum({
-    drumInputDevice: DRUM_INPUT_DEVICE,
-    outputDevice: OUT_DEVICE,
+  const arpeggioProps: ArpeggioProps = {
+    durationTicks: 0.5,
+    channel: 0,
+    delayTicks: 0
+  }
+
+  function drumHarmony(trigger: number, baseNote: MidiNote, highNote1: MidiNote) {
+    return msHarmony(
+      (event) => isRealNoteOnNote(event.message, trigger) && event.comesFrom(DRUM_IN),
+      {sequences: [repeatSequence(arpeggioUp([baseNote], 4, arpeggioProps), 4)]},
+      {},
+    );
+  }
+
+  const harmonies: MidiSequenceDrumHarmony[] = [
+    // Left Drum
+    drumHarmony(67, Cis3, F4),
+    drumHarmony(68, D3, F4),
+    // Right Drum
+    drumHarmony(69, E3, A4),
+    drumHarmony(70, Fis3, B4),
+    drumHarmony(71, A3, E5),
+    drumHarmony(72, H3, F4),
+  ];
+
+  const sequenceDrum = new MidiSequenceDrum({
+    harmonyNoteTriggerDevice: DRUM_IN,
+    triggerFilter: (midiEvent: MidiEvent) => midiEvent.comesFrom(DRUM_IN) || (midiEvent.comesFrom(KEYBOARD_IN) && isRealNoteOnBelow(midiEvent.message, C5)),
+    lastHarmonyTriggerFilter: (midiEvent: MidiEvent) =>
+      midiEvent.comesFrom(DRUM_IN) && isRealNoteOn(midiEvent.message) && midiEvent.message.note === 74,
+    outputDevice: THROUGH_PORT,
     harmonies,
-    stepDuration: defaultBeatDuration / 4
+    tickDuration: defaultBeatDuration / 2,
   });
 
   const controlForwarder = new ControlForwarder(FOOT_PEDAL, THROUGH_PORT, MOD, rangeMapper([0, 127], [10, 127]), 0);
 
   const effects = [
     new ControlForwarder(EXPRESS_PEDAL, OUT_DEVICE, MOD,
-      rangeMapper([0, 127], [0, 127]),3
+      rangeMapper([0, 127], [0, 127]), 3
     ),
     sequenceDrum,
     noteForwarder,
