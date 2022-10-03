@@ -125,14 +125,14 @@ export function diktatorSolo(props: PatchProps): Patch {
     return [
       msHarmony(
         (event) => (controlTracker.value < 20 && isRealNoteOnNote(event.message, baseNote + 12) && event.comesFrom(KEYBOARD_IN)),
-        {sequences: [mergeMidiSequences(drums(DRUM_AND_BASS_1A), bassNote(baseNote))]},
+        {sequences: [mergeMidiSequences(drums(DRUM_AND_BASS_1A), bassNotes(baseNote, 1))]},
         {},
         droneSeq(baseNote),
         (ev) => false
       ),
       msHarmony(
         (event) => (controlTracker.value < 100 && isRealNoteOnNote(event.message, baseNote + 12) && event.comesFrom(KEYBOARD_IN)),
-        {sequences: [repeatSequence(mergeMidiSequences(drums(NEW_ORLEANS_1A), bassNotes(baseNote)), 2)]},
+        {sequences: [repeatSequence(mergeMidiSequences(drums(NEW_ORLEANS_1A), bassNotes(baseNote, 0.5)), 2)]},
         {},
         droneSeq(baseNote),
         (ev) => false
@@ -182,7 +182,7 @@ export function diktatorSolo(props: PatchProps): Patch {
     tickDuration: defaultBeatDuration / 2,
   });
 
-  const controlForwarder = new ControlForwarder(KEYBOARD_IN, THROUGH_PORT, MOD, rangeMapper([0, 127], [10, 127]), droneChannel);
+  const controlForwarderSolo = new ControlForwarder(EXPRESS_PEDAL, THROUGH_PORT, MOD, rangeMapper([60, 127], [0, 80]), keyRightChannel);
 
   const noteForwarder = new NoteForwarder((event) =>
       event.comesFrom(KEYBOARD_IN) && isRealNote(event.message) && event.message.note > C5
@@ -200,7 +200,7 @@ export function diktatorSolo(props: PatchProps): Patch {
       rangeMapper([0, 127], [0, 127])
     ),
     sequenceDrum,
-    controlForwarder,
+    controlForwarderSolo,
     noteForwarder
   ]
 

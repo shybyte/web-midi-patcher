@@ -29,13 +29,17 @@ import {
   MidiNote
 } from '../midi_notes';
 import {applyEffects, Patch, PatchProps} from '../patch';
-import {rangeMapper, repeat} from '../utils';
+import {range, rangeMapper, repeat} from '../utils';
 import {NoteForwarder} from "../effects/note-forwarder";
 import {DRUM_IN, FOOT_PEDAL, KEYBOARD_IN} from "../config";
 import {isRealNote, isRealNoteOn, isRealNoteOnBelow, isRealNoteOnNote} from "../midi-message";
 import {MOD} from "../microkorg";
-import {MidiSequenceDrum, MidiSequenceDrumHarmony, msHarmony} from "../effects/midi-sequence-drum";
+import {MidiSequenceDrum, MidiSequenceDrumHarmony, MidiSequenceStep, msHarmony} from "../effects/midi-sequence-drum";
 import {ArpeggioProps, arpeggioUp} from "../music-utils";
+import {divideTicks, mergeMidiSequences, replaceNotes, setOutputDevice} from "../midi-sequence-utils";
+import {DRUM_AND_BASS_1A} from "../patterns/drum-and-bass-1";
+import {NEW_ORLEANS_1A} from "../patterns/new-orleans";
+import {gmRockKitToHandSonicStandard} from "../drum-mapping";
 
 // const DRUM_INPUT_DEVICE = VMPK;
 const OUT_DEVICE = THROUGH_PORT;
@@ -81,7 +85,33 @@ export function soAltWieIch(props: PatchProps): Patch {
     );
   }
 
+  function drums(pattern: MidiSequenceStep[]): MidiSequenceStep[] {
+    return divideTicks(
+      replaceNotes(setOutputDevice(pattern, HAND_SONIC), gmRockKitToHandSonicStandard),
+      192 / 8
+    );
+  }
+
+  function keyboardHarmony(baseNote: MidiNote): MidiSequenceDrumHarmony[] {
+    return [
+      msHarmony(
+        (event) => (isRealNoteOnNote(event.message, baseNote + 12) && event.comesFrom(KEYBOARD_IN)),
+        {
+          sequences: [
+            mergeMidiSequences(
+              drums(DRUM_AND_BASS_1A),
+              repeatSequence(arpeggioUp([baseNote], 4, arpeggioProps), 4)
+            )
+          ]
+        },
+        {},
+      ),
+    ];
+  }
+
+
   const harmonies: MidiSequenceDrumHarmony[] = [
+    ...range(C3, H3).flatMap(keyboardHarmony),
     // Left Drum
     drumHarmony(67, Cis3, F4),
     drumHarmony(68, D3, F4),
