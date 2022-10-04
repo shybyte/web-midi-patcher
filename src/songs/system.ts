@@ -26,7 +26,7 @@ export function system(): Patch {
       || isRealNoteOnNote(ev.message, Gis4) && ev.comesFrom(KEYBOARD_IN),
     defaultBeatDuration: defaultBeatDuration,
     minDuration: 100,
-    maxDuration: 800
+    maxDuration: 1000
   });
 
   const noteForwarder = new NoteForwarder((event) =>
@@ -119,7 +119,7 @@ export function system(): Patch {
     harmonyNoteTriggerDevice: DRUM_IN,
     triggerFilter: (midiEvent: MidiEvent) => midiEvent.comesFrom(DRUM_IN) || (midiEvent.comesFrom(KEYBOARD_IN) && isRealNoteOnBelow(midiEvent.message, C5)),
     lastHarmonyTriggerFilter: (midiEvent: MidiEvent) =>
-      midiEvent.comesFrom(DRUM_IN) && isRealNoteOn(midiEvent.message) && midiEvent.message.note === 74,
+      false,
     outputDevice: THROUGH_PORT,
     harmonies,
     tickDuration: defaultBeatDuration / 2,
