@@ -35,4 +35,6 @@ export const gmRockKitToHandSonicStandard = {
   [GmRockKit.snare]: 60,
   [GmRockKit.hatClosed]: 64,
   [GmRockKit.snareRimshot]: 60,
+  [GmRockKit.floorTom]: 63,
+  [GmRockKit.splash]: 64,
 }

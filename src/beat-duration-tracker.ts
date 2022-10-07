@@ -20,6 +20,10 @@ export class BeatDurationTracker {
     return this.#beatDuration;
   }
 
+  reset() {
+    this.#beatDuration = this.props.defaultBeatDuration;
+  }
+
   onMidiEvent(midiEvent: MidiEvent) {
     const props = this.props;
 

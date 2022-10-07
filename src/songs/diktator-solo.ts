@@ -44,10 +44,10 @@ import {isRealNote, isRealNoteOn, isRealNoteOnBelow, isRealNoteOnNote} from "../
 import {DRUM_IN, KEYBOARD_IN} from "../config";
 import {NoteForwarder} from "../effects/note-forwarder";
 import {divideTicks, mergeMidiSequences, replaceNotes, setOutputDevice} from "../midi-sequence-utils";
-import {DRUM_AND_BASS_1A} from "../patterns/drum-and-bass-1";
+import {DRUM_AND_BASS_1A, DRUM_AND_BASS_2A, DRUM_AND_BASS_2B} from "../patterns/drum-and-bass-1";
 import {gmRockKitToHandSonicStandard} from "../drum-mapping";
 import {ControlTracker} from "../effects/control-tracker";
-import {NEW_ORLEANS_1A} from "../patterns/new-orleans";
+import {MY_NEW_ORLEANS_1A, MY_NEW_ORLEANS_1B, NEW_ORLEANS_1A} from "../patterns/new-orleans";
 import {DRUM_ROLL_1} from "../patterns/drum-roll";
 
 const OUT_DEVICE = THROUGH_PORT;
@@ -88,8 +88,6 @@ export function diktatorSolo(props: PatchProps): Patch {
   const droneChannel = 1;
   let drumMode = 0;
 
-  const controlTracker = new ControlTracker(KEYBOARD_IN, MOD);
-
   function bassNote(note: MidiNote, ticks = 1): MidiSequenceStep[] {
     return [
       {type: 'NoteOn', note: note, channel: bassChannel, velocity: 100},
@@ -124,21 +122,29 @@ export function diktatorSolo(props: PatchProps): Patch {
   }
 
   const SPECIAL_DRUMS: { [note: MidiNote]: MidiSequenceStep[] } = {
+    [C3]: DRUM_AND_BASS_2B,
+    [G3]: DRUM_AND_BASS_2B,
     [Gis3]: DRUM_ROLL_1
+  }
+
+  const SPECIAL_DRUMS_ORLEANS: { [note: MidiNote]: MidiSequenceStep[] } = {
+    [C3]: MY_NEW_ORLEANS_1B,
+    [G3]: MY_NEW_ORLEANS_1B,
+    [Gis3]: DRUM_ROLL_1,
   }
 
   function keyboardHarmony(baseNote: MidiNote): MidiSequenceDrumHarmony[] {
     return [
       msHarmony(
         (event) => (controlTracker.value < 100 && drumMode === 0 && isRealNoteOnNote(event.message, baseNote + 12) && event.comesFrom(KEYBOARD_IN)),
-        {sequences: [mergeMidiSequences(drums(SPECIAL_DRUMS[baseNote] ?? DRUM_AND_BASS_1A), bassNotes(baseNote, 1))]},
+        {sequences: [mergeMidiSequences(drums(SPECIAL_DRUMS[baseNote] ?? DRUM_AND_BASS_2A), bassNotes(baseNote, 1))]},
         {},
         droneSeq(baseNote),
         (ev) => false
       ),
       msHarmony(
         (event) => (controlTracker.value < 100 && drumMode === 1 && isRealNoteOnNote(event.message, baseNote + 12) && event.comesFrom(KEYBOARD_IN)),
-        {sequences: [repeatSequence(mergeMidiSequences(drums(SPECIAL_DRUMS[baseNote] ?? NEW_ORLEANS_1A), bassNotes(baseNote, 0.5)), 2)]},
+        {sequences: [repeatSequence(mergeMidiSequences(drums(SPECIAL_DRUMS_ORLEANS[baseNote] ?? MY_NEW_ORLEANS_1A), bassNotes(baseNote, 0.5)), 2)]},
         {},
         droneSeq(baseNote),
         (ev) => false
@@ -217,6 +223,15 @@ export function diktatorSolo(props: PatchProps): Patch {
     maxDuration: defaultBeatDuration * 2
   });
 
+  const controlTracker = new ControlTracker(KEYBOARD_IN, MOD, (oldVal, newVal) => {
+    if (oldVal >= 100 && newVal < 100) {
+      beatTracker.reset();
+      drumMode = 0;
+      sequenceDrum.tickDuration = defaultBeatDuration;
+    }
+  });
+
+
   return {
     name: 'Diktator Solo',
     midiProgram: 28, // a45
@@ -224,16 +239,13 @@ export function diktatorSolo(props: PatchProps): Patch {
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       const midiMessage = midiEvent.message;
       controlTracker.onMidiEvent(midiEvent);
-      console.log('midiEvent', midiEvent, midiMessage);
+      // console.log('midiEvent', midiEvent, midiMessage);
       if (midiEvent.comesFrom(KEYBOARD_IN) && isRealNoteOnNote(midiMessage, Gis4)) {
         drumMode = (drumMode + 1) % 2;
       }
       beatTracker.onMidiEvent(midiEvent);
       // console.log('beatTracker.beatDuration', beatTracker.beatDuration);
       sequenceDrum.tickDuration = beatTracker.beatDuration / 2;
-      // if (isRealNoteOn(midiEvent.message) && midiEvent.comesFrom(KEYBOARD_IN) && midiEvent.message.note < C5) {
-      //   sequenceDrum.stopDrone(midiOut);
-      // }
       applyEffects(midiEvent, midiOut, effects);
     }
   }
