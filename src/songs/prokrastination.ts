@@ -58,13 +58,22 @@ export function prokrastination(props: PatchProps): Patch {
   const defaultBeatDuration = 500;
 
   const beatTracker = new BeatDurationTracker({
-      filter: (midiEvent => midiEvent.comesFrom(DRUM_IN) && isRealNoteOnBetween(midiEvent.message, 66, 74)),
+    filter: (midiEvent => midiEvent.comesFrom(DRUM_IN) && isRealNoteOnBetween(midiEvent.message, 66, 74)),
     defaultBeatDuration: defaultBeatDuration,
     minDuration: 300,
     maxDuration: 1500
   });
 
   const bassChannel = 0;
+  const bitArpChannel = 4;
+
+  function bitArpNote(note: MidiNote, ticks = 1): MidiSequenceStep[] {
+    return [
+      {type: 'NoteOn', note: note, channel: bitArpChannel, velocity: 100},
+      {ticks: ticks},
+      {type: 'NoteOff', note: note, channel: bitArpChannel, velocity: 100},
+    ]
+  }
 
   function bassNote(note: MidiNote, ticks = 1): MidiSequenceStep[] {
     return [
@@ -86,8 +95,9 @@ export function prokrastination(props: PatchProps): Patch {
       {sequences: [bassNote(baseNote)]},
       {
         60: {sequences: [bassNote(highNote1, 0.2)]},
+        62: {sequences: [bitArpNote(baseNote + 24 + 7, 0.2)]},
         64: {sequences: [bassNote(highNote1, 0.2)]},
-        65: {sequences: [bassNote(highNote1, 0.2)]},
+        65: {sequences: [bitArpNote(highNote1, 0.2)]},
       },
       repeat(arpeggioUp([baseNote, highNote1], 4, arpeggioProps), 4)
     );
@@ -115,17 +125,13 @@ export function prokrastination(props: PatchProps): Patch {
     tickDuration: defaultBeatDuration / 2,
   });
 
+  const soloChannel = 3;
   const noteForwarder = new NoteForwarder((event) =>
       (event.message.type === 'NoteOn' || event.message.type === 'NoteOff') &&
       event.comesFrom(KEYBOARD_IN)
     , THROUGH_PORT,
-    (message) => ({...message, note: message.note, channel: 3})
+    (message) => ({...message, note: message.note, channel: soloChannel})
   );
-
-  new ControlForwarder(EXPRESS_PEDAL, OUT_DEVICE, MOD,
-    rangeMapper([0, 127], [0, 127]),
-    arpeggioProps.channel
-  )
 
   const effects = [
     new ControlForwarder(EXPRESS_PEDAL, OUT_DEVICE, MOD,

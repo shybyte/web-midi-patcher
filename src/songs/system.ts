@@ -44,7 +44,7 @@ export function system(): Patch {
   function bassNoteFullSeq(note: MidiNote, highNote1: MidiNote, highNote2: MidiNote): MidiSequenceStep[] {
     return [
       {type: 'NoteOn', note: note, channel: bassChannel, velocity: 100},
-      {type: 'NoteOn', note: BD, channel: 0, velocity: 100, outputDevice: DRUM_OUT},
+      {type: 'NoteOn', note: BD, channel: 0, velocity: 127, outputDevice: DRUM_OUT},
       {type: 'NoteOff', note: BD, channel: 0, velocity: 0, outputDevice: DRUM_OUT},
       {ticks: 0.25},
       {type: 'NoteOff', note: note, channel: bassChannel, velocity: 100},
@@ -56,7 +56,7 @@ export function system(): Patch {
       {type: 'NoteOff', note: note, channel: bassChannel, velocity: 100},
       {ticks: 0.75},
       {type: 'NoteOn', note: highNote1, channel: bassChannel, velocity: 100},
-      {type: 'NoteOn', note: SNARE, channel: 0, velocity: 100, outputDevice: DRUM_OUT},
+      {type: 'NoteOn', note: SNARE, channel: 0, velocity: 117, outputDevice: DRUM_OUT},
       {type: 'NoteOff', note: SNARE, channel: 0, velocity: 0, outputDevice: DRUM_OUT},
       {ticks: 0.25},
       {type: 'NoteOff', note: highNote1, channel: bassChannel, velocity: 100},
@@ -133,6 +133,7 @@ export function system(): Patch {
 
   const effects = [
     new ControlForwarder(EXPRESS_PEDAL, THROUGH_PORT, MOD, rangeMapper([0, 127], [0, 127]), soloChannel),
+    new ControlForwarder(EXPRESS_PEDAL, THROUGH_PORT, MOD, rangeMapper([0, 127], [0, 127]), bassChannel),
     noteForwarder,
     sequenceDrum,
     noteForwarderPitchWheel
@@ -146,7 +147,7 @@ export function system(): Patch {
       beatTracker.onMidiEvent(midiEvent);
       sequenceDrum.tickDuration = beatTracker.beatDuration / 2;
       applyEffects(midiEvent, midiOut, effects);
-      // console.log('midiEvent:', midiEvent)
+      console.log('midiEvent:', midiEvent)
       // console.log('beatTracker:', beatTracker.beatDuration);
     }
   }

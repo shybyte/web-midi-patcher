@@ -19,7 +19,7 @@ import {
   D4,
   D5, D6,
   Dis3,
-  E3,
+  E3, E4,
   E5, E6,
   F3,
   F4,
@@ -45,7 +45,7 @@ import {isRealNoteOn, isRealNoteOnBelow, isRealNoteOnBetween, isRealNoteOnNote} 
 import {DRUM_IN, DRUM_OUT, KEYBOARD_IN} from "../config";
 import {NoteForwarder} from "../effects/note-forwarder";
 import {DRUM_AND_BASS_1A} from "../patterns/drum-and-bass-1";
-import {divideTicks, replaceNotes, setOutputDevice} from "../midi-sequence-utils";
+import {divideTicks, mergeMidiSequences, replaceNotes, setOutputDevice} from "../midi-sequence-utils";
 import {gmRockKitToHandSonicStandard} from "../drum-mapping";
 
 // const DRUM_INPUT_DEVICE = VMPK;
@@ -102,14 +102,29 @@ export function wahrheitSolo(props: PatchProps): Patch {
   function bassNoteFullSeq(note: MidiNote, highNote1: MidiNote, highNote2: MidiNote): MidiSequenceStep[] {
     return divideTicks(
       replaceNotes(setOutputDevice(DRUM_AND_BASS_1A, HAND_SONIC), gmRockKitToHandSonicStandard),
-      192/8
+      192 / 8
     );
+  }
+
+  function bassNotes(note: MidiNote, ticks = 0.5): MidiSequenceStep[] {
+    return repeat([
+      {type: 'NoteOn', note: note, channel: bassChannel, velocity: 100},
+      {ticks: ticks},
+      {type: 'NoteOff', note: note, channel: bassChannel, velocity: 100},
+      {ticks: ticks},
+    ], 16);
   }
 
   function keyboardHarmony(note: MidiNote) {
     return msHarmony(
       (event) => isRealNoteOnNote(event.message, note) && event.comesFrom(KEYBOARD_IN),
-      {sequences: [repeatSequence(bassNoteFullSeq(note, note + 7, note + 12), 1)]},
+      {
+        sequences: [
+          mergeMidiSequences(
+            repeatSequence(bassNoteFullSeq(note, note + 7, note + 12), 1),
+            bassNotes(note - 12, 0.25)
+          )]
+      },
     );
   }
 
@@ -129,6 +144,7 @@ export function wahrheitSolo(props: PatchProps): Patch {
     // Keyboard
     keyboardHarmony(C4),
     keyboardHarmony(D4),
+    keyboardHarmony(E4),
     keyboardHarmony(F4),
     keyboardHarmony(G4),
     keyboardHarmony(Gis4),
@@ -149,7 +165,11 @@ export function wahrheitSolo(props: PatchProps): Patch {
       (event.message.type === 'NoteOn' || event.message.type === 'NoteOff') &&
       event.comesFrom(KEYBOARD_IN)
     , THROUGH_PORT,
-    (message) => ({...message, note: message.note - 12, channel: 1})
+    (message) => ({
+      ...message,
+      note: message.note < C5 ? message.note - 12 : message.note,
+      channel: 1
+    })
   );
 
 
@@ -161,6 +181,10 @@ export function wahrheitSolo(props: PatchProps): Patch {
     new ControlForwarder(EXPRESS_PEDAL, OUT_DEVICE, MOD,
       rangeMapper([0, 127], [0, 127]),
       1
+    ),
+    new ControlForwarder(KEYBOARD_IN, OUT_DEVICE, MOD,
+      rangeMapper([0, 127], [0, 127]),
+      0
     ),
     new ControlSequenceStepper({
       trigger: filterByNoteOn(HAND_SONIC, 74),
@@ -186,12 +210,10 @@ export function wahrheitSolo(props: PatchProps): Patch {
       beatTracker.onMidiEvent(midiEvent);
       sequenceDrum.tickDuration = beatTracker.beatDuration / 2;
 
-      if (midiEvent.comesFrom(KEYBOARD_IN) && midiEvent.message.type === 'NoteOn' && midiEvent.message.velocity > 0 &&
-        (midiEvent.message.note === A4 || midiEvent.message.note === F4)
+      if (midiEvent.comesFrom(KEYBOARD_IN) && isRealNoteOn(midiMessage) && (midiMessage.note < C5)
       ) {
-        // sequenceDrum.stopDrone(midiOut);
+        midiOut.send(THROUGH_PORT, {type: 'ControlChange', channel: 1, value: 0, control: OSC2_SEMITONE})
         console.log('stopDrone#)');
-        // midiOut.playNoteAndNoteOff(HAND_SONIC, DRUM_LOOP_NOTE, 10);
       }
 
       // beatTracker.onMidiEvent(midiEvent);
