@@ -139,21 +139,21 @@ export function diktatorSolo(props: PatchProps): Patch {
         (event) => (controlTracker.value < 100 && drumMode === 0 && isRealNoteOnNote(event.message, baseNote + 12) && event.comesFrom(KEYBOARD_IN)),
         {sequences: [mergeMidiSequences(drums(SPECIAL_DRUMS[baseNote] ?? DRUM_AND_BASS_2A), bassNotes(baseNote, 1))]},
         {},
-        droneSeq(baseNote),
+        droneSeq(baseNote + 12),
         (ev) => false
       ),
       msHarmony(
         (event) => (controlTracker.value < 100 && drumMode === 1 && isRealNoteOnNote(event.message, baseNote + 12) && event.comesFrom(KEYBOARD_IN)),
         {sequences: [repeatSequence(mergeMidiSequences(drums(SPECIAL_DRUMS_ORLEANS[baseNote] ?? MY_NEW_ORLEANS_1A), bassNotes(baseNote, 0.5)), 2)]},
         {},
-        droneSeq(baseNote),
+        droneSeq(baseNote + 12),
         (ev) => false
       ),
       msHarmony(
         (event) => (controlTracker.value >= 100 && isRealNoteOnNote(event.message, baseNote + 12) && event.comesFrom(KEYBOARD_IN)),
         {sequences: [bassNote(baseNote)]},
         {},
-        droneSeq(baseNote),
+        droneSeq(baseNote + 12),
         (ev) => false
       ),
     ];
