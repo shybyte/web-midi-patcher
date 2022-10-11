@@ -44,9 +44,11 @@ import {ArpeggioProps, arpeggioUp} from "../music-utils";
 import {isRealNoteOn, isRealNoteOnBelow, isRealNoteOnBetween, isRealNoteOnNote} from "../midi-message";
 import {DRUM_IN, DRUM_OUT, KEYBOARD_IN} from "../config";
 import {NoteForwarder} from "../effects/note-forwarder";
-import {DRUM_AND_BASS_1A} from "../patterns/drum-and-bass-1";
+import {DRUM_AND_BASS_1A, DRUM_AND_BASS_2A, DRUM_AND_BASS_2B} from "../patterns/drum-and-bass-1";
 import {divideTicks, mergeMidiSequences, replaceNotes, setOutputDevice} from "../midi-sequence-utils";
 import {gmRockKitToHandSonicStandard} from "../drum-mapping";
+import {DRUM_AND_BASS_1A_POLY, DRUM_AND_BASS_1B_POLY} from "../patterns/drum-and-bass-1-poly";
+import {DRUM_ROLL_1} from "../patterns/drum-roll";
 
 // const DRUM_INPUT_DEVICE = VMPK;
 const OUT_DEVICE = THROUGH_PORT;
@@ -96,12 +98,16 @@ export function wahrheitSolo(props: PatchProps): Patch {
     );
   }
 
-  const BD = 74;
-  const SNARE = 60;
+  const SPECIAL_DRUMS: { [note: MidiNote]: MidiSequenceStep[] } = {
+    [C4]: DRUM_AND_BASS_1B_POLY,
+    [D4]: DRUM_AND_BASS_1B_POLY,
+    [G4]: DRUM_AND_BASS_1B_POLY,
+    [E4]: DRUM_AND_BASS_1B_POLY,
+  }
 
   function bassNoteFullSeq(note: MidiNote, highNote1: MidiNote, highNote2: MidiNote): MidiSequenceStep[] {
     return divideTicks(
-      replaceNotes(setOutputDevice(DRUM_AND_BASS_1A, HAND_SONIC), gmRockKitToHandSonicStandard),
+      replaceNotes(setOutputDevice(SPECIAL_DRUMS[note] ?? DRUM_AND_BASS_1A_POLY, HAND_SONIC), gmRockKitToHandSonicStandard),
       192 / 8
     );
   }
