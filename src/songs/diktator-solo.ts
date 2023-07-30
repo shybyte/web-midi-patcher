@@ -83,7 +83,7 @@ const keyRightChannel = 2;
 // C d e F G Gis a B / Fis h
 // C d e F Fis G Gis a B h
 export function diktatorSolo(props: PatchProps): Patch {
-  const defaultBeatDuration = 500;
+  const defaultBeatDuration = 470;
   const bassChannel = 0;
   const droneChannel = 1;
   let drumMode = 0;
@@ -243,7 +243,7 @@ export function diktatorSolo(props: PatchProps): Patch {
       if (midiEvent.comesFrom(KEYBOARD_IN) && isRealNoteOnNote(midiMessage, Gis4)) {
         drumMode = (drumMode + 1) % 2;
       }
-      beatTracker.onMidiEvent(midiEvent);
+      // beatTracker.onMidiEvent(midiEvent);
       // console.log('beatTracker.beatDuration', beatTracker.beatDuration);
       sequenceDrum.tickDuration = beatTracker.beatDuration / 2;
       applyEffects(midiEvent, midiOut, effects);

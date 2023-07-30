@@ -213,7 +213,7 @@ export function wahrheitSolo(props: PatchProps): Patch {
       const midiMessage = midiEvent.message;
       console.log('midiEvent', midiEvent, midiMessage);
 
-      beatTracker.onMidiEvent(midiEvent);
+      // beatTracker.onMidiEvent(midiEvent);
       sequenceDrum.tickDuration = beatTracker.beatDuration / 2;
 
       if (midiEvent.comesFrom(KEYBOARD_IN) && isRealNoteOn(midiMessage) && (midiMessage.note < C5)

@@ -14,7 +14,9 @@ import {MidiSequenceDrum, MidiSequenceDrumHarmony, MidiSequenceStep, msHarmony} 
 import {isRealNoteOn, isRealNoteOnBelow, isRealNoteOnNote} from "../midi-message";
 import {BeatDurationTracker} from "../beat-duration-tracker";
 
-const soloChannel = 1;
+const soloChannel = 0;
+const bassChannel = 1;
+
 
 export function system(): Patch {
 
@@ -36,8 +38,6 @@ export function system(): Patch {
     (message) => ({...message, channel: soloChannel})
   );
 
-
-  const bassChannel = 0;
   const BD = 2;
   const SNARE = 1;
 
