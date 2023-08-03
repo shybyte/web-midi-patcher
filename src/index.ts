@@ -22,6 +22,8 @@ import {wahrheitSolo} from "./songs/wahrheit-solo";
 import {midiSequenceDrumTest} from "./songs/midi-sequence-drum-test";
 import {sicherheitskopie} from "./songs/sicherheitskopie";
 import {usbSong} from "./songs/usb";
+import {sommer} from "./songs/sommer";
+import {messenger} from "./songs/messenger";
 
 type MIDIMessageEvent = WebMidi.MIDIMessageEvent;
 
@@ -42,6 +44,8 @@ async function start() {
 
   const patchFactories = [
     system,
+    messenger,
+    sommer,
     sicherheitskopie,
     diktatorSolo,
     soAltWieIch,
