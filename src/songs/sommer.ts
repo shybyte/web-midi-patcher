@@ -13,8 +13,8 @@ import {
   B4,
   C3,
   C5,
-  Cis3,
-  D3,
+  Cis3, Cis4,
+  D3, D4,
   D5,
   Dis3,
   E3,
@@ -24,18 +24,18 @@ import {
   F5,
   Fis3,
   G3,
-  G4,
-  H3,
+  G4, Gis3,
+  H3, H4,
   MidiNote
 } from '../midi_notes';
 import {applyEffects, Patch, PatchProps} from '../patch';
 import {range, rangeMapper, repeat} from '../utils';
 import {NoteForwarder} from "../effects/note-forwarder";
 import {DRUM_IN, FOOT_PEDAL, KEYBOARD_IN} from "../config";
-import {isRealNote, isRealNoteOn, isRealNoteOnBelow, isRealNoteOnNote} from "../midi-message";
+import {isRealNote, isRealNoteOn, isRealNoteOnBelow, isRealNoteOnBetween, isRealNoteOnNote} from "../midi-message";
 import {MOD} from "../microkorg";
 import {MidiSequenceDrum, MidiSequenceDrumHarmony, MidiSequenceStep, msHarmony} from "../effects/midi-sequence-drum";
-import {ArpeggioProps, arpeggioUp} from "../music-utils";
+import {arpeggio, ArpeggioProps, arpeggioUp, arpeggioUpDown} from "../music-utils";
 import {divideTicks, mergeMidiSequences, replaceNotes, setOutputDevice} from "../midi-sequence-utils";
 import {DRUM_AND_BASS_1A} from "../patterns/drum-and-bass-1";
 import {NEW_ORLEANS_1A} from "../patterns/new-orleans";
@@ -57,7 +57,9 @@ export function sommer(props: PatchProps): Patch {
   const defaultBeatDuration = 450;
 
   const beatTracker = new BeatDurationTracker({
-    filter: filterByNoteOn(DRUM_INPUT_DEVICE, 74),
+    // minDuration: 200,
+    // maxDuration: 2000,
+    filter: (midiEvent => midiEvent.comesFrom(DRUM_IN) && isRealNoteOnBetween(midiEvent.message, 66, 74)),
     defaultBeatDuration: defaultBeatDuration
   });
 
@@ -80,8 +82,15 @@ export function sommer(props: PatchProps): Patch {
   function drumHarmony(trigger: number, baseNote: MidiNote, highNote1: MidiNote) {
     return msHarmony(
       (event) => isRealNoteOnNote(event.message, trigger) && event.comesFrom(DRUM_IN),
-      {sequences: [repeatSequence(arpeggioUp([baseNote], 3, arpeggioProps), 6)]},
-      {},
+      // {sequences: [repeatSequence(arpeggioUp([baseNote], 3, arpeggioProps), 6)]},
+      {sequences: [arpeggioUp([baseNote], 2, arpeggioProps)]},
+      {
+        60: arpeggio([highNote1 + 24, baseNote + 7 + 12], arpeggioProps),
+        64: arpeggio([baseNote + 24, baseNote + 12], arpeggioProps), //hihat
+        62: arpeggio([baseNote, baseNote + 7], arpeggioProps),
+        63: arpeggio([highNote1 + 24, baseNote + 7 + 12], arpeggioProps),
+        65: arpeggio([highNote1 + 24, baseNote + 7 + 12], arpeggioProps)
+      },
     );
   }
 
@@ -113,20 +122,20 @@ export function sommer(props: PatchProps): Patch {
   const harmonies: MidiSequenceDrumHarmony[] = [
     ...range(C3, H3).flatMap(keyboardHarmony),
     // Left Drum
-    drumHarmony(67, E3, F4),
-    drumHarmony(68, D3, F4),
+    drumHarmony(67, E3, Gis3),
+    drumHarmony(68, D3, Fis3),
     // Right Drum
     drumHarmony(69, Fis3, A4),
-    drumHarmony(70, G4, B4),
-    drumHarmony(71, A3, E5),
-    drumHarmony(72, H3, F4),
+    drumHarmony(70, G4, H4),
+    drumHarmony(71, A3, Cis4),
+    drumHarmony(72, H3, D4,)
   ];
 
   const sequenceDrum = new MidiSequenceDrum({
     harmonyNoteTriggerDevice: DRUM_IN,
     triggerFilter: (midiEvent: MidiEvent) => midiEvent.comesFrom(DRUM_IN) || (midiEvent.comesFrom(KEYBOARD_IN) && isRealNoteOnBelow(midiEvent.message, C5)),
-    lastHarmonyTriggerFilter: (midiEvent: MidiEvent) =>
-      midiEvent.comesFrom(DRUM_IN) && isRealNoteOn(midiEvent.message) && midiEvent.message.note === 74,
+    // lastHarmonyTriggerFilter: (midiEvent: MidiEvent) =>
+    //   midiEvent.comesFrom(DRUM_IN) && isRealNoteOn(midiEvent.message) && midiEvent.message.note === 74,
     outputDevice: THROUGH_PORT,
     harmonies,
     tickDuration: defaultBeatDuration / 2,
@@ -155,9 +164,9 @@ export function sommer(props: PatchProps): Patch {
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       const midiMessage = midiEvent.message;
       console.log('midiEvent', midiEvent, midiMessage);
-      // beatTracker.onMidiEvent(midiEvent);
+      beatTracker.onMidiEvent(midiEvent);
       // console.log('beatTracker.beatDuration', beatTracker.beatDuration);
-      // sequenceDrum.stepDuration = beatTracker.beatDuration / 4
+      sequenceDrum.tickDuration = beatTracker.beatDuration / 2;
       applyEffects(midiEvent, midiOut, effects);
     }
   }

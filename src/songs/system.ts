@@ -142,7 +142,7 @@ export function system(): Patch {
   return {
     name: 'System',
     midiProgram: 51, // A74
-    drumProgram: 106,
+    drumProgram: 120,
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       beatTracker.onMidiEvent(midiEvent);
       sequenceDrum.tickDuration = beatTracker.beatDuration / 2;

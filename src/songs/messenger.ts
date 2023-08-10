@@ -118,8 +118,8 @@ export function messenger(props: PatchProps): Patch {
   const sequenceDrum = new MidiSequenceDrum({
     harmonyNoteTriggerDevice: DRUM_IN,
     triggerFilter: (midiEvent: MidiEvent) => midiEvent.comesFrom(DRUM_IN) || (midiEvent.comesFrom(KEYBOARD_IN) && isRealNoteOnBelow(midiEvent.message, C5)),
-    lastHarmonyTriggerFilter: (midiEvent: MidiEvent) =>
-      midiEvent.comesFrom(DRUM_IN) && isRealNoteOn(midiEvent.message) && midiEvent.message.note === 74,
+    // lastHarmonyTriggerFilter: (midiEvent: MidiEvent) =>
+    //   midiEvent.comesFrom(DRUM_IN) && isRealNoteOn(midiEvent.message) && midiEvent.message.note === 74,
     outputDevice: THROUGH_PORT,
     harmonies,
     tickDuration: defaultBeatDuration / 2,
@@ -145,7 +145,7 @@ export function messenger(props: PatchProps): Patch {
   return {
     name: 'Messenger',
     midiProgram: 28, // a45
-    drumProgram: 112,
+    drumProgram: 122,
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       const midiMessage = midiEvent.message;
       console.log('midiEvent', midiEvent, midiMessage);

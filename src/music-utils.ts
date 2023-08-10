@@ -29,7 +29,8 @@ export function arpeggio(notes: MidiNote[], props: ArpeggioProps): MidiSequenceS
   return notes.flatMap(note => ([
     {type: 'NoteOn', note: note, channel: props.channel, velocity: 100},
     {ticks: props.durationTicks},
-    {type: 'NoteOff', note: note, channel: props.channel, velocity: 100},
+    {type: 'NoteOff', note: note, channel: props.channel, velocity: 0},
+    {type: 'NoteOff', note: note, channel: props.channel, velocity: 0},
     {ticks: props.delayTicks},
   ]))
 }

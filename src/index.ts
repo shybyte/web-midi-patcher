@@ -43,9 +43,9 @@ async function start() {
   }
 
   const patchFactories = [
+    sommer,
     system,
     messenger,
-    sommer,
     sicherheitskopie,
     diktatorSolo,
     soAltWieIch,
