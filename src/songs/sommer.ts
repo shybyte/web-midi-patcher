@@ -83,7 +83,7 @@ export function sommer(props: PatchProps): Patch {
     return msHarmony(
       (event) => isRealNoteOnNote(event.message, trigger) && event.comesFrom(DRUM_IN),
       // {sequences: [repeatSequence(arpeggioUp([baseNote], 3, arpeggioProps), 6)]},
-      {sequences: [arpeggioUp([baseNote], 2, arpeggioProps)]},
+      {sequences: [repeatSequence(arpeggioUp([baseNote-12], 2, arpeggioProps), 16)]},
       {
         60: arpeggio([highNote1 + 24, baseNote + 7 + 12], arpeggioProps),
         64: arpeggio([baseNote + 24, baseNote + 12], arpeggioProps), //hihat
@@ -164,7 +164,7 @@ export function sommer(props: PatchProps): Patch {
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {
       const midiMessage = midiEvent.message;
       console.log('midiEvent', midiEvent, midiMessage);
-      beatTracker.onMidiEvent(midiEvent);
+      // beatTracker.onMidiEvent(midiEvent);
       // console.log('beatTracker.beatDuration', beatTracker.beatDuration);
       sequenceDrum.tickDuration = beatTracker.beatDuration / 2;
       applyEffects(midiEvent, midiOut, effects);

@@ -24,6 +24,7 @@ import {sicherheitskopie} from "./songs/sicherheitskopie";
 import {usbSong} from "./songs/usb";
 import {sommer} from "./songs/sommer";
 import {messenger} from "./songs/messenger";
+import {computer} from "./songs/computer";
 
 type MIDIMessageEvent = WebMidi.MIDIMessageEvent;
 
@@ -43,6 +44,7 @@ async function start() {
   }
 
   const patchFactories = [
+    computer,
     sommer,
     system,
     messenger,
@@ -80,6 +82,11 @@ async function start() {
         return; // Ignore e.g. clock events
       }
 
+      if (midiMessage.type === 'ControlChange' && midiMessage.control === 17) {
+        midiOut.allNotesOff();
+        return;
+      }
+
       // console.log(midiEvent, midiMessage);
 
       if (midiMessage.type === 'ProgramChange' && midiEvent.comesFrom(...PROGRAMM_CHANGE_INPUT_PORTS)) {
@@ -90,6 +97,8 @@ async function start() {
           console.warn('No patch for programm ', midiMessage.number);
         }
       }
+
+
 
       currentPatch.onMidiEvent(midiEvent, midiOut);
     })

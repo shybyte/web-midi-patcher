@@ -53,7 +53,7 @@ const DRUM_INPUT_DEVICE = HAND_SONIC;
 // fis h D A
 
 // cis D E fis A h
-export function sommer(props: PatchProps): Patch {
+export function computer(props: PatchProps): Patch {
   const defaultBeatDuration = 450;
 
   const beatTracker = new BeatDurationTracker({
@@ -74,18 +74,19 @@ export function sommer(props: PatchProps): Patch {
   );
 
   const arpeggioProps: ArpeggioProps = {
-    durationTicks: 0.25,
+    durationTicks: 0.5,
     channel: 0,
-    delayTicks: 0.25
+    delayTicks: 0.5
   }
 
-  function drumHarmony(trigger: number, baseNote: MidiNote, highNote1: MidiNote) {
+  function drumHarmony(trigger: number, baseNote: MidiNote, highNote1: MidiNote, highNote2Delta: MidiNote = -1) {
     return msHarmony(
       (event) => isRealNoteOnNote(event.message, trigger) && event.comesFrom(DRUM_IN),
       // {sequences: [repeatSequence(arpeggioUp([baseNote], 3, arpeggioProps), 6)]},
       {sequences: [repeatSequence(arpeggioUp([baseNote-12], 2, arpeggioProps), 16)]},
       {
-        60: arpeggio([highNote1 + 24, baseNote + 7 + 12], arpeggioProps),
+        61: arpeggio([highNote1 + 24], arpeggioProps),
+        60: {sequences: [arpeggio([highNote1 + 24], arpeggioProps),arpeggio([highNote1 + 24 + highNote2Delta], arpeggioProps),]},
         64: arpeggio([baseNote + 24, baseNote + 12], arpeggioProps), //hihat
         62: arpeggio([baseNote, baseNote + 7], arpeggioProps),
         63: arpeggio([highNote1 + 24, baseNote + 7 + 12], arpeggioProps),
@@ -125,9 +126,9 @@ export function sommer(props: PatchProps): Patch {
     drumHarmony(67, E3, Gis3),
     drumHarmony(68, D3, Fis3),
     // Right Drum
-    drumHarmony(69, Fis3, A4),
+    drumHarmony(69, Fis3, A4, -5),
     drumHarmony(70, G4, H4),
-    drumHarmony(71, A3, Cis4),
+    drumHarmony(71, A3, Cis4, 3),
     drumHarmony(72, H3, D4,)
   ];
 
@@ -158,7 +159,7 @@ export function sommer(props: PatchProps): Patch {
 
 
   return {
-    name: 'Sommer',
+    name: 'Computer',
     midiProgram: 28, // a45
     drumProgram: 119,
     onMidiEvent(midiEvent: MidiEvent, midiOut: MidiOut) {

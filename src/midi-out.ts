@@ -56,5 +56,14 @@ export class MidiOut {
       }
     }
   }
+
+  public allNotesOff() {
+    for (const midiOutput of this.midiOutputs) {
+      console.log('allNotesOff', midiOutput.name);
+      for (let channel = 0; channel < 5; channel++) {
+        this.controlChange(midiOutput.name!, 123, 0, channel); // All Notes off
+      }
+    }
+  }
 }
 
